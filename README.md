@@ -1,6 +1,14 @@
 # Microsoft Sticky Notes to Kanboard sync
 
-A Python script to synchronize notes from [Microsoft Sticky Notes](https://en.wikipedia.org/wiki/Sticky_Notes) to [Kanboard](https://kanboard.net/).
+A Python script to synchronize notes from Windows [Sticky Notes](https://en.wikipedia.org/wiki/Sticky_Notes) to [Kanboard](https://kanboard.net/).
+
+Supported Sticky Notes version:
+
+  - Windows Vista
+  - Windows 7
+  - Windows 8
+  - Windows 10 (initial release)
+  - Windows 10 (Aniversary Update)
 
 ## Prerequisites
 
