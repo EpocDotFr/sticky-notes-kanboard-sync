@@ -6,6 +6,7 @@ import click
 import platform
 import os
 import time
+import sys
 
 
 def debug(message, err=False, exit=False):
@@ -16,79 +17,101 @@ def debug(message, err=False, exit=False):
     ), err=err)
 
     if exit:
-        exit(1)
+        sys.exit(1)
 
 
-class StickyNoteFileHandler(PatternMatchingEventHandler):
-    def on_modified(self, event):
-        debug('Modified')
-
-    def on_deleted(self, event):
-        debug('Deleted')
-
-    def on_moved(self, event):
-        debug('Moved')
+class StickyNoteHandlerInterface(PatternMatchingEventHandler):
+    def __init__(self, patterns=None):
+        super().__init__(ignore_directories=True, patterns=patterns)
 
 
-def get_paths():
+class Windows7StickyNoteHandler(StickyNoteHandlerInterface):
+    def __init__(self):
+        super().__init__(patterns=['*.snt'])
+
+    def on_any_event(self, event):
+        debug(event.src_path)
+        debug(event.event_type)
+
+
+class SyncEngine:
+    platform_os = None
+    platform_version = None
+
     sticky_notes_directory = None
     sticky_notes_filename = None
     sticky_notes_file_path = None
 
-    platform_os = platform.system()
-    platform_version = platform.release()
+    def __init__(self):
+        Env.read_envfile('.env')
 
-    debug('You are using Windows ' + platform_version)
+        debug('Initializing')
 
-    if platform_os != 'Windows':
-        debug('This script is only available on Windows Vista or above (for obvious reasons)', err=True, exit=True)
+    def run_observer(self, handler):
+        debug('Watching ' + self.sticky_notes_file_path)
 
-    if platform_version == 'Vista':
-        debug('Not yet implemented', exit=True) # TODO
-    elif platform_version == '7':
-        debug('Not yet implemented', exit=True) # TODO
-    elif platform_version == '8':
-        debug('Not yet implemented', exit=True) # TODO
-    elif platform_version == '10':
-        sticky_notes_directory = os.path.join(env('USERPROFILE'), 'AppData\Local\Packages\Microsoft.MicrosoftStickyNotes_8wekyb3d8bbwe\LocalState')
-        sticky_notes_filename = 'plum.sqlite'
-        sticky_notes_file_path = os.path.join(sticky_notes_directory, sticky_notes_filename)
+        observer = Observer()
+        observer.schedule(handler, path=self.sticky_notes_directory, recursive=False)
+        observer.start()
 
-        if not os.path.isfile(sticky_notes_file_path):
-            debug('Sticky Notes file not found in ' + sticky_notes_file_path + ', trying another location', err=True)
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            observer.stop()
 
-            sticky_notes_directory = os.path.join(env('USERPROFILE'), 'AppData\Roaming\Microsoft\Sticky Notes')
-            sticky_notes_filename = 'StickyNotes.snt'
-            sticky_notes_file_path = os.path.join(sticky_notes_directory, sticky_notes_filename)
-    else:
-        debug('Unable to determine the Windows version your are running', err=True, exit=True)
+        observer.join()
 
-    if not os.path.isfile(sticky_notes_file_path):
-        debug('Sticky Notes file not found', err=True, exit=True)
+    def run(self):
+        self.discover_paths()
 
-    return (sticky_notes_directory, sticky_notes_filename, sticky_notes_file_path)
+        debug('Watching ' + self.sticky_notes_file_path)
+
+    def discover_paths(self):
+        handler = None
+
+        self.platform_os = platform.system()
+        self.platform_version = platform.release()
+
+        debug('You are using Windows ' + self.platform_version)
+
+        if self.platform_os != 'Windows':
+            debug('This script is only available on Windows Vista or above (for obvious reasons)', err=True, exit=True)
+
+        if self.platform_version == 'Vista':
+            debug('Not yet implemented', exit=True) # TODO
+        elif self.platform_version == '7':
+            self.sticky_notes_directory = os.path.join(env('USERPROFILE'), 'AppData\Roaming\Microsoft\Sticky Notes')
+            self.sticky_notes_filename = 'StickyNotes.snt'
+            self.sticky_notes_file_path = os.path.join(self.sticky_notes_directory, self.sticky_notes_filename)
+            handler = Windows7StickyNoteHandler()
+        elif self.platform_version == '8':
+            debug('Not yet implemented', exit=True) # TODO
+        elif self.platform_version == '10':
+            self.sticky_notes_directory = os.path.join(env('USERPROFILE'), 'AppData\Local\Packages\Microsoft.MicrosoftStickyNotes_8wekyb3d8bbwe\LocalState')
+            self.sticky_notes_filename = 'plum.sqlite'
+            self.sticky_notes_file_path = os.path.join(self.sticky_notes_directory, self.sticky_notes_filename)
+
+            if not os.path.isfile(self.sticky_notes_file_path):
+                debug('Sticky Notes file not found in ' + self.sticky_notes_file_path + ', trying another location', err=True)
+
+                self.sticky_notes_directory = os.path.join(env('USERPROFILE'), 'AppData\Roaming\Microsoft\Sticky Notes')
+                self.sticky_notes_filename = 'StickyNotes.snt'
+                self.sticky_notes_file_path = os.path.join(self.sticky_notes_directory, self.sticky_notes_filename)
+                handler = Windows7StickyNoteHandler()
+        else:
+            debug('Unable to determine the Windows version your are running', err=True, exit=True)
+
+        if not os.path.isfile(self.sticky_notes_file_path):
+            debug('Sticky Notes file not found', err=True, exit=True)
+
+        self.run_observer(handler)
+
 
 @click.command()
 def run():
-    Env.read_envfile('.env')
-
-    debug('Initializing')
-
-    sticky_notes_directory, sticky_notes_filename, sticky_notes_file_path = get_paths()
-
-    debug('Watching ' + sticky_notes_file_path)
-
-    observer = Observer()
-    observer.schedule(StickyNoteFileHandler(ignore_directories=True, patterns=[sticky_notes_filename]), path=sticky_notes_directory, recursive=False)
-    observer.start()
-
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        observer.stop()
-
-    observer.join()
+    sync_engine = SyncEngine()
+    sync_engine.run()
 
 if __name__ == '__main__':
     run()
