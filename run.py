@@ -33,6 +33,8 @@ def run():
         pass
     elif platform_version == '7':
         pass
+    elif platform_version == '8':
+        pass
     elif platform_version == '10':
         sticky_notes_file = os.path.join(env('APPDATA'), 'Microsoft\Sticky Notes\StickyNotes.snt')
     else:
