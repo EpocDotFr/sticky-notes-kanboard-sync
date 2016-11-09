@@ -1,4 +1,4 @@
-# Microsoft Sticky Notes to Kanboard sync
+# Sticky Notes to Kanboard sync
 
 A Python script to synchronize notes from Windows [Sticky Notes](https://en.wikipedia.org/wiki/Sticky_Notes) to [Kanboard](https://kanboard.net/).
 
