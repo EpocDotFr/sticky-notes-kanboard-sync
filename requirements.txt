@@ -3,4 +3,4 @@ arrow
 click
 olefile
 watchdog
-requests
+kanboard
