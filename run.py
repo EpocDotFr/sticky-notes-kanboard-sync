@@ -20,12 +20,12 @@ def debug(message, err=False, exit=False):
         sys.exit(1)
 
 
-class StickyNoteHandlerInterface(PatternMatchingEventHandler):
+class FileHandlerInterface(PatternMatchingEventHandler):
     def __init__(self, patterns=None):
         super().__init__(ignore_directories=True, patterns=patterns)
 
 
-class Windows7StickyNoteHandler(StickyNoteHandlerInterface):
+class Windows7FileHandler(FileHandlerInterface):
     def __init__(self):
         super().__init__(patterns=['*.snt'])
 
@@ -84,7 +84,7 @@ class SyncEngine:
             self.sticky_notes_directory = os.path.join(env('USERPROFILE'), 'AppData\Roaming\Microsoft\Sticky Notes')
             self.sticky_notes_filename = 'StickyNotes.snt'
             self.sticky_notes_file_path = os.path.join(self.sticky_notes_directory, self.sticky_notes_filename)
-            handler = Windows7StickyNoteHandler()
+            handler = Windows7FileHandler()
         elif self.platform_version == '8':
             debug('Not yet implemented', exit=True) # TODO
         elif self.platform_version == '10':
@@ -98,7 +98,7 @@ class SyncEngine:
                 self.sticky_notes_directory = os.path.join(env('USERPROFILE'), 'AppData\Roaming\Microsoft\Sticky Notes')
                 self.sticky_notes_filename = 'StickyNotes.snt'
                 self.sticky_notes_file_path = os.path.join(self.sticky_notes_directory, self.sticky_notes_filename)
-                handler = Windows7StickyNoteHandler()
+                handler = Windows7FileHandler()
         else:
             debug('Unable to determine the Windows version your are running', err=True, exit=True)
 
