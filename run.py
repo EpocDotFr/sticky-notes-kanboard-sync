@@ -1,6 +1,8 @@
 from envparse import env, Env
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
+import watchdog.events
+import olefile
 import arrow
 import click
 import platform
@@ -25,13 +27,39 @@ class FileHandlerInterface(PatternMatchingEventHandler):
         super().__init__(ignore_directories=True, patterns=patterns)
 
 
-class Windows7FileHandler(FileHandlerInterface):
-    def __init__(self):
+class SNTFileHandler(FileHandlerInterface):
+    path = None
+
+    def __init__(self, path):
+        self.path = path
+
         super().__init__(patterns=['*.snt'])
 
     def on_any_event(self, event):
-        debug(event.src_path)
-        debug(event.event_type)
+        if self.path != event.src_path:
+            pass
+
+        snt_file = olefile.OleFileIO(self.path)
+
+        if event.event_type == watchdog.events.EVENT_TYPE_MODIFIED:
+            for stream in snt_file.listdir(storages=False):
+                note_id = stream[0]
+
+                if note_id in ['Metafile', 'Version']:
+                    continue
+
+                note_file = stream[1]
+
+                if note_file == '0': # Contains the actual note content (RTF format)
+                    with snt_file.openstream([note_id, note_file]) as note:
+                        print(note.read()) # TODO
+
+        elif event.event_type == watchdog.events.EVENT_TYPE_DELETED:
+            debug(self.path + ' was unexpectedly deleted', err=True, exit=True)
+        elif event.event_type == watchdog.events.EVENT_TYPE_MOVED:
+            debug(self.path + ' was unexpectedly moved to ' + event.dest_path, err=True, exit=True)
+        else:
+            debug('Unhandled event type: ' + event.event_type, err=True)
 
 
 class SyncEngine:
@@ -84,7 +112,11 @@ class SyncEngine:
             self.sticky_notes_directory = os.path.join(env('USERPROFILE'), 'AppData\Roaming\Microsoft\Sticky Notes')
             self.sticky_notes_filename = 'StickyNotes.snt'
             self.sticky_notes_file_path = os.path.join(self.sticky_notes_directory, self.sticky_notes_filename)
-            handler = Windows7FileHandler()
+
+            if not olefile.isOleFile(self.sticky_notes_file_path):
+                debug(self.sticky_notes_file_path + ' isn\'t a valid Sticky Notes file', err=True, exit=True)
+
+            handler = SNTFileHandler(self.sticky_notes_file_path)
         elif self.platform_version == '8':
             debug('Not yet implemented', exit=True) # TODO
         elif self.platform_version == '10':
@@ -98,7 +130,11 @@ class SyncEngine:
                 self.sticky_notes_directory = os.path.join(env('USERPROFILE'), 'AppData\Roaming\Microsoft\Sticky Notes')
                 self.sticky_notes_filename = 'StickyNotes.snt'
                 self.sticky_notes_file_path = os.path.join(self.sticky_notes_directory, self.sticky_notes_filename)
-                handler = Windows7FileHandler()
+
+                if not olefile.isOleFile(self.sticky_notes_file_path):
+                    debug(self.sticky_notes_file_path + ' isn\'t a valid Sticky Notes file', err=True, exit=True)
+
+                handler = SNTFileHandler(self.sticky_notes_file_path)
         else:
             debug('Unable to determine the Windows version your are running', err=True, exit=True)
 
