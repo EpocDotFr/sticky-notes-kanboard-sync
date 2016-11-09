@@ -2,3 +2,4 @@ envparse
 arrow
 click
 olefile
+watchdog
