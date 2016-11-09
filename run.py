@@ -30,17 +30,15 @@ class StickyNoteFileHandler(PatternMatchingEventHandler):
         debug('Moved')
 
 
-@click.command()
-def run():
-    Env.read_envfile('.env')
-
-    debug('Initializing')
-
-    platform_os = platform.system()
-    platform_version = platform.release()
+def get_paths():
     sticky_notes_directory = None
     sticky_notes_filename = None
     sticky_notes_file_path = None
+
+    platform_os = platform.system()
+    platform_version = platform.release()
+
+    debug('You are using Windows ' + platform_version)
 
     if platform_os != 'Windows':
         debug('This script is only available on Windows Vista or above (for obvious reasons)', err=True, exit=True)
@@ -52,16 +50,31 @@ def run():
     elif platform_version == '8':
         debug('Not yet implemented', exit=True) # TODO
     elif platform_version == '10':
-        sticky_notes_directory = os.path.join(env('USERPROFILE'), 'AppData\Roaming\Microsoft\Sticky Notes')
-        sticky_notes_filename = 'StickyNotes.snt'
+        sticky_notes_directory = os.path.join(env('USERPROFILE'), 'AppData\Local\Packages\Microsoft.MicrosoftStickyNotes_8wekyb3d8bbwe\LocalState')
+        sticky_notes_filename = 'plum.sqlite'
         sticky_notes_file_path = os.path.join(sticky_notes_directory, sticky_notes_filename)
-    else:
-        debug('Unable to determine the Windows version your are running, aborting', err=True, exit=True)
 
-    debug('You are using Windows ' + platform_version)
+        if not os.path.isfile(sticky_notes_file_path):
+            debug('Sticky Notes file not found in ' + sticky_notes_file_path + ', trying another location', err=True)
+
+            sticky_notes_directory = os.path.join(env('USERPROFILE'), 'AppData\Roaming\Microsoft\Sticky Notes')
+            sticky_notes_filename = 'StickyNotes.snt'
+            sticky_notes_file_path = os.path.join(sticky_notes_directory, sticky_notes_filename)
+    else:
+        debug('Unable to determine the Windows version your are running', err=True, exit=True)
 
     if not os.path.isfile(sticky_notes_file_path):
-        debug('Sticky Notes file not found (should be at ' + sticky_notes_file_path + ')', err=True, exit=True)
+        debug('Sticky Notes file not found', err=True, exit=True)
+
+    return (sticky_notes_directory, sticky_notes_filename, sticky_notes_file_path)
+
+@click.command()
+def run():
+    Env.read_envfile('.env')
+
+    debug('Initializing')
+
+    sticky_notes_directory, sticky_notes_filename, sticky_notes_file_path = get_paths()
 
     debug('Watching ' + sticky_notes_file_path)
 
