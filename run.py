@@ -64,11 +64,13 @@ class SNTFileHandler(FileHandlerInterface):
                 continue
 
             note_id = stream[0]
-            note_file = stream[1]
+            note_file = stream[1] # 0: RTF content, 1: ??, 3: Raw content without formatting
 
-            if note_file == '0': # Contains the actual note content (RTF format)
+            if note_file == '0':
                 with snt_file.openstream([note_id, note_file]) as note:
                     print(note.read()) # TODO
+
+        snt_file.close()
 
 
 class SQLiteFileHandler(FileHandlerInterface):
@@ -85,10 +87,10 @@ class SQLiteFileHandler(FileHandlerInterface):
         cursor = conn.cursor()
         notes = cursor.execute('SELECT Text, Theme FROM Note')
 
+        conn.close()
+
         for note in notes:
             print(note['Text'], note['Theme'])
-
-        conn.close()
 
 class SyncEngine:
     platform_os = None
