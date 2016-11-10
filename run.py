@@ -83,7 +83,7 @@ class SQLiteFileHandler(FileHandlerInterface):
         conn.row_factory = sqlite3.Row
 
         cursor = conn.cursor()
-        notes = cursor.execute('SELECT * FROM Note')
+        notes = cursor.execute('SELECT Text, Theme FROM Note')
 
         for note in notes:
             print(note['Text'], note['Theme'])
