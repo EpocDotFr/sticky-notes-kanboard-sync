@@ -9,6 +9,7 @@ import platform
 import os
 import time
 import sys
+import sqlite3
 
 
 def debug(message, err=False, exit=False):
@@ -23,44 +24,71 @@ def debug(message, err=False, exit=False):
 
 
 class FileHandlerInterface(PatternMatchingEventHandler):
-    def __init__(self, patterns=None):
-        super().__init__(ignore_directories=True, patterns=patterns)
-
-
-class SNTFileHandler(FileHandlerInterface):
     path = None
 
-    def __init__(self, path):
+    def __init__(self, patterns=None, path=None):
         self.path = path
 
-        super().__init__(patterns=['*.snt'])
+        super().__init__(ignore_directories=True, patterns=patterns)
 
-    def on_any_event(self, event):
+    def is_valid_event(self, event):
         if self.path != event.src_path:
-            pass
-
-        snt_file = olefile.OleFileIO(self.path)
+            return False
 
         if event.event_type == watchdog.events.EVENT_TYPE_MODIFIED:
-            for stream in snt_file.listdir(storages=False):
-                note_id = stream[0]
-
-                if note_id in ['Metafile', 'Version']:
-                    continue
-
-                note_file = stream[1]
-
-                if note_file == '0': # Contains the actual note content (RTF format)
-                    with snt_file.openstream([note_id, note_file]) as note:
-                        print(note.read()) # TODO
-
+            return True
         elif event.event_type == watchdog.events.EVENT_TYPE_DELETED:
             debug(self.path + ' was unexpectedly deleted', err=True, exit=True)
         elif event.event_type == watchdog.events.EVENT_TYPE_MOVED:
             debug(self.path + ' was unexpectedly moved to ' + event.dest_path, err=True, exit=True)
         else:
             debug('Unhandled event type: ' + event.event_type, err=True)
+            return False
 
+
+class SNTFileHandler(FileHandlerInterface):
+    def __init__(self, path):
+        if not olefile.isOleFile(path):
+            debug(path + ' isn\'t a valid Sticky Notes file', err=True, exit=True)
+
+        super().__init__(patterns=['*.snt'], path=path)
+
+    def on_any_event(self, event):
+        if not self.is_valid_event(event):
+            pass
+
+        snt_file = olefile.OleFileIO(self.path)
+
+        for stream in snt_file.listdir(storages=False):
+            if stream[0] in ['Metafile', 'Version']:
+                continue
+
+            note_id = stream[0]
+            note_file = stream[1]
+
+            if note_file == '0': # Contains the actual note content (RTF format)
+                with snt_file.openstream([note_id, note_file]) as note:
+                    print(note.read()) # TODO
+
+
+class SQLiteFileHandler(FileHandlerInterface):
+    def __init__(self, path):
+        super().__init__(patterns=['*.sqlite'], path=path)
+
+    def on_any_event(self, event):
+        if not self.is_valid_event(event):
+            pass
+            
+        conn = sqlite3.connect('file:' + self.path + '?mode=ro', uri=True)
+        conn.row_factory = sqlite3.Row
+
+        cursor = conn.cursor()
+        notes = cursor.execute('SELECT * FROM Note')
+
+        for note in notes:
+            print(note['Text'], note['Theme'])
+
+        conn.close()
 
 class SyncEngine:
     platform_os = None
@@ -93,18 +121,18 @@ class SyncEngine:
     def run(self):
         self.discover_paths()
 
-        debug('Watching ' + self.sticky_notes_file_path)
-
     def discover_paths(self):
+        debug('Discovering Sticky Notes data file')
+
         handler = None
 
         self.platform_os = platform.system()
         self.platform_version = platform.release()
 
-        debug('You are using Windows ' + self.platform_version)
-
         if self.platform_os != 'Windows':
             debug('This script is only available on Windows Vista or above (for obvious reasons)', err=True, exit=True)
+
+        debug('You are using Windows ' + self.platform_version)
 
         if self.platform_version == 'Vista':
             debug('Not yet implemented', exit=True) # TODO
@@ -113,33 +141,52 @@ class SyncEngine:
             self.sticky_notes_filename = 'StickyNotes.snt'
             self.sticky_notes_file_path = os.path.join(self.sticky_notes_directory, self.sticky_notes_filename)
 
-            if not olefile.isOleFile(self.sticky_notes_file_path):
-                debug(self.sticky_notes_file_path + ' isn\'t a valid Sticky Notes file', err=True, exit=True)
+            if not os.path.isfile(self.sticky_notes_file_path):
+                debug('Sticky Notes file not found', err=True, exit=True)
 
             handler = SNTFileHandler(self.sticky_notes_file_path)
         elif self.platform_version == '8':
             debug('Not yet implemented', exit=True) # TODO
         elif self.platform_version == '10':
-            self.sticky_notes_directory = os.path.join(env('USERPROFILE'), 'AppData\Local\Packages\Microsoft.MicrosoftStickyNotes_8wekyb3d8bbwe\LocalState')
-            self.sticky_notes_filename = 'plum.sqlite'
-            self.sticky_notes_file_path = os.path.join(self.sticky_notes_directory, self.sticky_notes_filename)
+            # Old app
+            old_sticky_notes_directory = os.path.join(env('USERPROFILE'), 'AppData\Roaming\Microsoft\Sticky Notes')
+            old_sticky_notes_filename = 'StickyNotes.snt'
+            old_sticky_notes_file_path = os.path.join(old_sticky_notes_directory, old_sticky_notes_filename)
 
-            if not os.path.isfile(self.sticky_notes_file_path):
-                debug('Sticky Notes file not found in ' + self.sticky_notes_file_path + ', trying another location', err=True)
+            # New app
+            new_sticky_notes_directory = os.path.join(env('USERPROFILE'), 'AppData\Local\Packages\Microsoft.MicrosoftStickyNotes_8wekyb3d8bbwe\LocalState')
+            new_sticky_notes_filename = 'plum.sqlite'
+            new_sticky_notes_file_path = os.path.join(new_sticky_notes_directory, new_sticky_notes_filename)
 
-                self.sticky_notes_directory = os.path.join(env('USERPROFILE'), 'AppData\Roaming\Microsoft\Sticky Notes')
-                self.sticky_notes_filename = 'StickyNotes.snt'
-                self.sticky_notes_file_path = os.path.join(self.sticky_notes_directory, self.sticky_notes_filename)
+            if os.path.isfile(old_sticky_notes_file_path) and os.path.isfile(new_sticky_notes_file_path): # Both exists, take the most recent
+                if os.path.getmtime(new_sticky_notes_file_path) >= os.path.getmtime(old_sticky_notes_file_path): # New app is the most recently modified
+                    self.sticky_notes_directory = new_sticky_notes_directory
+                    self.sticky_notes_filename = new_sticky_notes_filename
+                    self.sticky_notes_file_path = new_sticky_notes_file_path
 
-                if not olefile.isOleFile(self.sticky_notes_file_path):
-                    debug(self.sticky_notes_file_path + ' isn\'t a valid Sticky Notes file', err=True, exit=True)
+                    handler = SQLiteFileHandler(self.sticky_notes_file_path)
+                else: # Old app is the most recently modified
+                    self.sticky_notes_directory = old_sticky_notes_directory
+                    self.sticky_notes_filename = old_sticky_notes_filename
+                    self.sticky_notes_file_path = old_sticky_notes_file_path
+
+                    handler = SNTFileHandler(self.sticky_notes_file_path)
+            elif os.path.isfile(old_sticky_notes_file_path) and not os.path.isfile(new_sticky_notes_file_path): # Old exists
+                self.sticky_notes_directory = old_sticky_notes_directory
+                self.sticky_notes_filename = old_sticky_notes_filename
+                self.sticky_notes_file_path = old_sticky_notes_file_path
 
                 handler = SNTFileHandler(self.sticky_notes_file_path)
-        else:
-            debug('Unable to determine the Windows version your are running', err=True, exit=True)
+            elif not os.path.isfile(old_sticky_notes_file_path) and os.path.isfile(new_sticky_notes_file_path): # New exists
+                self.sticky_notes_directory = new_sticky_notes_directory
+                self.sticky_notes_filename = new_sticky_notes_filename
+                self.sticky_notes_file_path = new_sticky_notes_file_path
 
-        if not os.path.isfile(self.sticky_notes_file_path):
-            debug('Sticky Notes file not found', err=True, exit=True)
+                handler = SQLiteFileHandler(self.sticky_notes_file_path)
+            else:
+                debug('Sticky Notes file not found', err=True, exit=True)
+        else:
+            debug('The Windows version you are running is not available', err=True, exit=True)
 
         self.run_observer(handler)
 
