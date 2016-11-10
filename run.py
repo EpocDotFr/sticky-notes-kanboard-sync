@@ -59,16 +59,12 @@ class SNTFileHandler(FileHandlerInterface):
 
         snt_file = olefile.OleFileIO(self.path)
 
-        for stream in snt_file.listdir(storages=False):
-            if stream[0] in ['Metafile', 'Version']:
-                continue
+        for storage in snt_file.listdir(storages=True, streams=False):
+            note_id = storage[0] # It's an UUID-like string
+            note_file = '0' # 0: Content in RTF format, 1: ??, 3: Raw content unicode-encoded
 
-            note_id = stream[0]
-            note_file = stream[1] # 0: RTF content, 1: ??, 3: Raw content without formatting
-
-            if note_file == '0':
-                with snt_file.openstream([note_id, note_file]) as note:
-                    print(note.read()) # TODO
+            with snt_file.openstream([note_id, note_file]) as note:
+                print(note.read()) # TODO
 
         snt_file.close()
 
