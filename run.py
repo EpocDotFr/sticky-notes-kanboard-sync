@@ -61,10 +61,14 @@ class SNTFileHandler(FileHandlerInterface):
 
         for storage in snt_file.listdir(storages=True, streams=False):
             note_id = storage[0] # It's an UUID-like string
-            note_file = '0' # 0: Content in RTF format, 1: ??, 3: Raw content unicode-encoded
+            note_content_rtf_file = '0' # RTF content
+            note_content_raw_file = '3' # Unicode raw content
 
-            with snt_file.openstream([note_id, note_file]) as note:
-                print(note.read()) # TODO
+            note_content_rtf = ''
+            note_content_raw = ''
+
+            with snt_file.openstream([note_id, note_content_raw_file]) as note_content:
+                note_content_raw = note_content.read() # TODO
 
         snt_file.close()
 
