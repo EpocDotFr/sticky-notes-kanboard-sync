@@ -2,7 +2,7 @@
 
 A Python script to synchronize notes from Windows [Sticky Notes](https://en.wikipedia.org/wiki/Sticky_Notes) to [Kanboard](https://kanboard.net/).
 
-Supported Sticky Notes versions:
+Supported Sticky Notes versions are the ones available on:
 
   - Windows Vista
   - Windows 7
@@ -12,7 +12,7 @@ Supported Sticky Notes versions:
 
 ## Prerequisites
 
-Python 3. May eventually works with Python 2 (not tested).
+Python 3.
 
 ## Installation
 
@@ -24,12 +24,10 @@ Copy the `.env.example` file to `.env` and fill in the configuration parameters.
 
 Available configuration parameters are:
 
-  - `TIMEZONE` Self-explanatory parameter
   - `KANBOARD_ENDPOINT` URL to the `jsonrpc.php` file of Kanboard's API
   - `KANBOARD_TOKEN` Token used to access the Kanboard instance API
   - `KANBOARD_PROJECT_ID` The project that will store your notes
-  - `KANBOARD_COLUMN_ID` The column that will store your notes (set to `0` to automatically use the default column)
-  - `KANBOARD_SWIMLANE_ID` The swimlane that will store your notes (set to `0` to automatically use the default swimlane)
+  - `KANBOARD_COLUMN_ID` and `KANBOARD_SWIMLANE_ID` Respectively the column and the swimlane that will be used to store your notes (set to `0` to automatically use the project's defaults)
 
 ## Usage
 
