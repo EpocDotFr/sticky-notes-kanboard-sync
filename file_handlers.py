@@ -43,15 +43,17 @@ class SNTFileHandler(FileHandlerInterface):
         snt_file = olefile.OleFileIO(self.sync_engine.sticky_notes_file_path)
 
         for storage in snt_file.listdir(storages=True, streams=False):
-            note_id = storage[0]  # UUID-like string
-            note_content_rtf_file = '0'  # RTF content
-            note_content_raw_file = '3'  # Raw text content
+            note_id = storage[0]  # UUID-like string representing the note ID
+            note_content_rtf_file = '0'  # RTF content of the note
+            note_content_raw_file = '3'  # Raw text content of the note
 
             note_content_rtf = ''
             note_content_raw = ''
 
             with snt_file.openstream([note_id, note_content_raw_file]) as note_content:
-                note_content_raw = note_content.read()  # TODO
+                note_content_raw = note_content.read().decode()
+
+            print(note_content_raw) # TODO
 
         snt_file.close()
 
