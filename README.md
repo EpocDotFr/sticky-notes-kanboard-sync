@@ -2,14 +2,16 @@
 
 A Python script to synchronize notes from Windows [Sticky Notes](https://en.wikipedia.org/wiki/Sticky_Notes) to [Kanboard](https://kanboard.net/).
 
-Supported Sticky Notes versions are:
+**Only official Sticky Notes applications are supported** (not the ones made by third-parties).
+
+Supported versions are the ones you found in:
 
   - Windows Vista (Gadget for Windows Sidebar) (TODO)
   - Windows 7 (for technical reasons notes color can't be synchronized for this version)
   - Windows 8 (TODO)
   - Windows 10
-    - Initial release version (for technical reasons notes color can't be synchronized for this version)
-    - Anniversary Update version
+    - Initial release (for technical reasons notes color can't be synchronized for this version)
+    - Anniversary Update
 
 ## Prerequisites
 
@@ -42,16 +44,45 @@ No arguments available at this moment.
 
 Once started, this script will detect your Windows version to discover where the Sticky Notes data file is located (see
 below). A [file watcher](https://github.com/gorakhargosh/watchdog) is then started to watch this file and will perform
-Kanboard synchronization actions (using its [JSON-RPC API](https://kanboard.net/documentation/api-json-rpc)) each time the file
-is modified.
+Kanboard synchronization actions (using its [JSON-RPC API](https://kanboard.net/documentation/api-json-rpc)) each time
+the file is modified.
 
 ### Sticky Notes data files
 
 There are three main type of data file used by Sticky Notes to store its data.
 
-#### TODO: Gadget for Windows Sidebar
+#### Settings.ini
 
-TODO
+Applicable for:
+
+  - Windows Vista (Gadget for Windows Sidebar)
+
+Located in the `%USERPROFILE%\AppData\Local\Microsoft\Windows Sidebar` directory, it's a simple [INI](https://en.wikipedia.org/wiki/INI_file)
+file. It is also used to store all configuration parameters related to the Windows Sidebar.
+
+It can be opened by the native [configparser](https://docs.python.org/3.5/library/configparser.html) package.
+
+This file's structure is the following (non-interesting parts have been deleted):
+
+```
+[Root]
+...
+[Section 1]
+NoteCount="3"                                (1)
+NoteState="2"                                (2)
+ColorSaved="yellow"                          (3)
+FontSaved="Segoe%20Print"                    (4)
+0="test%0D%0Aa%20new%20line%0D%0A%0D%0Aomg"  }
+1="anoter%20one%0D%0A%0D%0Amultiline!"       } (5)
+2="wohoo%0D%0A%0D%0Alook%20at%20this"        }
+...
+```
+
+  - **(1)** Total number of notes
+  - **(2)** The note ID that is currently displayed on the widget UI (see below)
+  - **(3)** Notes color (can't be defined individually)
+  - **(4)** Notes font family (can't be defined individually)
+  - **(5)** The note's text, which is [URL encoded](https://en.wikipedia.org/wiki/Percent-encoding). Rich text formatting isn't supported. INI keys correspond to the note's ID
 
 #### StickyNotes.snt
 
@@ -61,9 +92,9 @@ Applicable for:
   - Windows 8
   - Windows 10 (Initial release)
 
-Usually located in the `%USERPROFILE%\AppData\Roaming\Microsoft\Sticky Notes` directory, it's an [OLE2](https://en.wikipedia.org/wiki/Compound_File_Binary_Format) file.
+Located in the `%USERPROFILE%\AppData\Roaming\Microsoft\Sticky Notes` directory, it's an [OLE2](https://en.wikipedia.org/wiki/Compound_File_Binary_Format) file.
 
-This script use the [olefile](https://bitbucket.org/decalage/olefileio_pl/) package to read them ([7-Zip](http://www.7-zip.org/) can also open them).
+This script use the [olefile](https://bitbucket.org/decalage/olefileio_pl/) package to open it.
 
 This file's structure is the following:
 
@@ -79,7 +110,7 @@ This file's structure is the following:
 |   +-- Version                   (6)
 ```
 
-  - **(1)** A folder that contains a note's data. It is named after it seems to be the first 20 characters of a [GUID](https://en.wikipedia.org/wiki/Globally_unique_identifier) (counting hyphens)
+  - **(1)** A folder that contains a note's data. It is named after it seems to be the first 20 characters of a [GUID](https://en.wikipedia.org/wiki/Globally_unique_identifier) (counting hyphens, don't know why it's limited to 20 chars)
   - **(2)** This file doesn't seem to contain interesting data. Changing a note's text or color doesn't impact it
   - **(3)** The note's text in the [RTF](https://en.wikipedia.org/wiki/Rich_Text_Format) format
   - **(4)** The note's text without any formatting, but still it seems to contain special characters I don't know what they are used for
@@ -92,7 +123,7 @@ Applicable for:
 
   - Windows 10 (Anniversary Update)
 
-Usually located in the `%USERPROFILE%\AppData\Local\Packages\Microsoft.MicrosoftStickyNotes_8wekyb3d8bbwe\LocalState` directory, it's simply a [SQLite](https://en.wikipedia.org/wiki/SQLite) database file.
+Located in the `%USERPROFILE%\AppData\Local\Packages\Microsoft.MicrosoftStickyNotes_8wekyb3d8bbwe\LocalState` directory, it's a [SQLite](https://en.wikipedia.org/wiki/SQLite) database file.
  
 It can be opened by the native [sqlite3](https://docs.python.org/3.5/library/sqlite3.html) package.
 
