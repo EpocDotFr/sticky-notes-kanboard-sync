@@ -71,9 +71,8 @@ This file's structure is the following (non-interesting parts have been deleted)
 NoteCount="3"                                (1)
 NoteState="2"                                (2)
 ColorSaved="yellow"                          (3)
-FontSaved="Segoe%20Print"                    (4)
 0="test%0D%0Aa%20new%20line%0D%0A%0D%0Aomg"  }
-1="anoter%20one%0D%0A%0D%0Amultiline!"       } (5)
+1="anoter%20one%0D%0A%0D%0Amultiline!"       } (4)
 2="wohoo%0D%0A%0D%0Alook%20at%20this"        }
 ...
 ```
@@ -81,8 +80,7 @@ FontSaved="Segoe%20Print"                    (4)
   - **(1)** Total number of notes
   - **(2)** The note ID that is currently displayed on the widget UI (see below)
   - **(3)** Notes color (can't be defined individually)
-  - **(4)** Notes font family (can't be defined individually)
-  - **(5)** The note's text, which is [URL encoded](https://en.wikipedia.org/wiki/Percent-encoding). Rich text formatting isn't supported. INI keys correspond to the note's ID
+  - **(4)** The note's text, which is [URL encoded](https://en.wikipedia.org/wiki/Percent-encoding). Rich text formatting isn't supported. INI keys correspond to the note's ID
 
 #### StickyNotes.snt
 
