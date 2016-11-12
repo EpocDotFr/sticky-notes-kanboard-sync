@@ -8,6 +8,10 @@ import time
 
 
 class SyncEngine:
+    """Class responsible of syncing the data from Sticky Notes to Kanboard.
+
+    Reads configuration variables in the .env file and perform OS / Version identification. Once instanciated, the run()
+    method must be called to actually run the sync engine."""
     platform_os = None
     platform_version = None
 
@@ -15,19 +19,21 @@ class SyncEngine:
     sticky_notes_filename = None
     sticky_notes_file_path = None
 
+    handler = None
+
     def __init__(self):
         Env.read_envfile('.env')
 
         debug('Initializing')
 
-        self.platform_os = platform.system()
-        self.platform_version = platform.release()
+        self.discover_paths()
 
-    def run_observer(self, handler):
+    def run(self):
+        """Run the file watcher of the sync engine, which will make things when the file is changed."""
         debug('Watching ' + self.sticky_notes_file_path)
 
         observer = Observer()
-        observer.schedule(handler, path=self.sticky_notes_directory, recursive=False)
+        observer.schedule(self.handler, path=self.sticky_notes_directory, recursive=False)
         observer.start()
 
         try:
@@ -39,13 +45,13 @@ class SyncEngine:
 
         observer.join()
 
-    def run(self):
-        self.discover_paths()
-
     def discover_paths(self):
-        debug('Discovering Sticky Notes data file')
+        """Discover where is the Sticky Notes data file located."""
+        self.platform_os = platform.system()
+        self.platform_version = platform.release()
 
-        handler = None
+        """Detect where is the Sticky Notes file to watch. Depends on the OS version."""
+        debug('Discovering Sticky Notes data file')
 
         if self.platform_os != 'Windows':
             debug('This script is only available on Windows Vista or above (for obvious reasons)', err=True, terminate=True)
@@ -62,7 +68,7 @@ class SyncEngine:
             if not os.path.isfile(self.sticky_notes_file_path):
                 debug('Sticky Notes file not found', err=True, terminate=True)
 
-            handler = SNTFileHandler(self)
+            self.handler = SNTFileHandler(self)
         elif self.platform_version == '8':
             debug('Not yet implemented', terminate=True) # TODO
         elif self.platform_version == '10':
@@ -82,28 +88,26 @@ class SyncEngine:
                     self.sticky_notes_filename = new_sticky_notes_filename
                     self.sticky_notes_file_path = new_sticky_notes_file_path
 
-                    handler = SQLiteFileHandler(self)
+                    self.handler = SQLiteFileHandler(self)
                 else: # Old app is the most recently modified
                     self.sticky_notes_directory = old_sticky_notes_directory
                     self.sticky_notes_filename = old_sticky_notes_filename
                     self.sticky_notes_file_path = old_sticky_notes_file_path
 
-                    handler = SNTFileHandler(self)
+                    self.handler = SNTFileHandler(self)
             elif os.path.isfile(old_sticky_notes_file_path) and not os.path.isfile(new_sticky_notes_file_path): # Old exists
                 self.sticky_notes_directory = old_sticky_notes_directory
                 self.sticky_notes_filename = old_sticky_notes_filename
                 self.sticky_notes_file_path = old_sticky_notes_file_path
 
-                handler = SNTFileHandler(self)
+                self.handler = SNTFileHandler(self)
             elif not os.path.isfile(old_sticky_notes_file_path) and os.path.isfile(new_sticky_notes_file_path): # New exists
                 self.sticky_notes_directory = new_sticky_notes_directory
                 self.sticky_notes_filename = new_sticky_notes_filename
                 self.sticky_notes_file_path = new_sticky_notes_file_path
 
-                handler = SQLiteFileHandler(self)
+                self.handler = SQLiteFileHandler(self)
             else:
                 debug('Sticky Notes file not found', err=True, terminate=True)
         else:
             debug('The Windows version you are running is not available', err=True, terminate=True)
-
-        self.run_observer(handler)

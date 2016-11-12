@@ -6,6 +6,7 @@ import sqlite3
 
 
 class FileHandlerInterface(PatternMatchingEventHandler):
+    """Base class for all the Sticky Notes file handlers."""
     sync_engine = None
 
     def __init__(self, sync_engine, patterns=None):
