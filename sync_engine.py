@@ -26,9 +26,9 @@ class SyncEngine:
 
         debug('Initializing')
 
+    def run(self):
         self.discover_paths()
 
-    def run(self):
         """Run the file watcher of the sync engine, which will make things when the file is changed."""
         debug('Watching ' + self.sticky_notes_file_path)
 
@@ -48,7 +48,9 @@ class SyncEngine:
     def discover_paths(self):
         """Discover where is the Sticky Notes data file located."""
         self.platform_os = platform.system()
-        self.platform_version = platform.release()
+
+        if not self.platform_version: # If Windows version wasn't already set
+            self.platform_version = platform.release()
 
         """Detect where is the Sticky Notes file to watch. Depends on the OS version."""
         debug('Discovering Sticky Notes data file')
@@ -110,4 +112,4 @@ class SyncEngine:
             else:
                 debug('Sticky Notes file not found', err=True, terminate=True)
         else:
-            debug('The Windows version you are running is not available', err=True, terminate=True)
+            debug('This Windows version (' + self.platform_version + ') is invalid or is not managed', err=True, terminate=True)

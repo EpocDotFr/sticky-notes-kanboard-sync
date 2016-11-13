@@ -35,10 +35,14 @@ Available configuration parameters are:
 ## Usage
 
 ```
-python run.py
+python run.py [--win-version]
 ```
 
-No arguments available at this moment.
+  - `--win-version` Windows version. If defined, will force the script to not automatically detect the Windows version and use the one provided instead. Valid values are:
+    - `Vista`
+    - `7`
+    - `8`
+    - `10`
 
 ## How it works
 
@@ -47,18 +51,19 @@ below). A [file watcher](https://github.com/gorakhargosh/watchdog) is then start
 Kanboard synchronization actions (using its [JSON-RPC API](https://kanboard.net/documentation/api-json-rpc)) each time
 the file is modified.
 
-### Sticky Notes data files
+## Sticky Notes data files retro-engineering
 
-There are three main type of data file used by Sticky Notes to store its data.
+There are three main types of data file used by Sticky Notes to store its data, one for each primary version of Sticky
+Notes, which are detailed below.
 
-#### Settings.ini
+### Settings.ini
 
 Applicable for:
 
   - Windows Vista (Gadget for Windows Sidebar)
 
 Located in the `%USERPROFILE%\AppData\Local\Microsoft\Windows Sidebar` directory, it's a simple [INI](https://en.wikipedia.org/wiki/INI_file)
-file. It is also used to store all configuration parameters related to the Windows Sidebar.
+file. It is also used to store all configuration parameters related to Windows Sidebar.
 
 It can be opened by the native [configparser](https://docs.python.org/3.5/library/configparser.html) package.
 
@@ -67,22 +72,23 @@ This file's structure is the following (non-interesting parts have been deleted)
 ```
 [Root]
 ...
-[Section 1]
-NoteCount="3"                                (1)
-NoteState="2"                                (2)
-ColorSaved="yellow"                          (3)
+[Section 1]                                  (1)
+NoteCount="3"                                (2)
+NoteState="2"                                (3)
+ColorSaved="yellow"                          (4)
 0="test%0D%0Aa%20new%20line%0D%0A%0D%0Aomg"  }
-1="anoter%20one%0D%0A%0D%0Amultiline!"       } (4)
+1="anoter%20one%0D%0A%0D%0Amultiline!"       } (5)
 2="wohoo%0D%0A%0D%0Alook%20at%20this"        }
 ...
 ```
 
-  - **(1)** Total number of notes
-  - **(2)** The note ID that is currently displayed on the widget UI (see below)
-  - **(3)** Notes color (can't be defined individually)
-  - **(4)** The note's text, which is [URL encoded](https://en.wikipedia.org/wiki/Percent-encoding). Rich text formatting isn't supported. INI keys correspond to the note's ID
+  - **(1)** Each INI section starting by `Section` represents one gadget
+  - **(2)** Total number of saved notes
+  - **(3)** The note ID that is currently displayed on the gadget UI
+  - **(4)** Notes color (can't be defined individually)
+  - **(5)** The note's text, which is [URL encoded](https://en.wikipedia.org/wiki/Percent-encoding). Rich text formatting isn't supported. Keys within this INI section that are strictly integers are considered as the note's ID
 
-#### StickyNotes.snt
+### StickyNotes.snt
 
 Applicable for:
 
@@ -115,7 +121,7 @@ This file's structure is the following:
   - **(5)** [TrIDNet](http://mark0.net/soft-tridnet-e.html) recognize this file as a [Sybase iAnywhere](https://en.wikipedia.org/wiki/Sybase_iAnywhere) database (either an [Advantage Database Server](https://en.wikipedia.org/wiki/Advantage_Database_Server) or [SQL Anywhere](https://en.wikipedia.org/wiki/SQL_Anywhere) one), however I wasn't able to open it either with a tool or with a Python package. Comparing the hex content of this file before and after changing notes color seems to change a specific value but without being able to read this file or without any documentation, it isn't possible to properly parse this file
   - **(6)** Seems to either contain the version of Sticky Notes or the version of the storage shema, in the hex format (e.g `02 00 00 00` for the Windows Seven's version)
 
-#### plum.sqlite
+### plum.sqlite
 
 Applicable for:
 

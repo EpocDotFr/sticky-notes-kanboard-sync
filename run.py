@@ -5,7 +5,8 @@ import sys
 
 
 @click.command()
-def run():
+@click.option('--winversion', '-wv', type=click.Choice(['Vista', '7', '8', '10']), help='Windows version', default=None)
+def run(winversion):
     """Start the sync engine."""
     logging.basicConfig(
         format='%(asctime)s - %(levelname)s - %(message)s',
@@ -16,6 +17,7 @@ def run():
     logging.getLogger().setLevel(logging.INFO)
 
     sync_engine = SyncEngine()
+    sync_engine.platform_version = winversion
     sync_engine.run()
 
 if __name__ == '__main__':
