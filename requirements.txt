@@ -2,4 +2,4 @@ envparse
 click
 olefile
 watchdog
-kanboard
+jsonrpcclient[requests]
