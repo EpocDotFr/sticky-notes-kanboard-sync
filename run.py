@@ -20,5 +20,6 @@ def run(winversion):
     sync_engine.platform_version = winversion
     sync_engine.run()
 
+
 if __name__ == '__main__':
     run()

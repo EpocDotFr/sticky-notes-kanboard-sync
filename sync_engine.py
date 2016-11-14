@@ -50,13 +50,14 @@ class SyncEngine:
         """Discover where is the Sticky Notes data file located."""
         self.platform_os = platform.system()
 
-        if not self.platform_version: # If Windows version wasn't already set manually
+        if not self.platform_version:  # If Windows version wasn't already set manually
             self.platform_version = platform.release()
 
         debug('Discovering Sticky Notes data file')
 
         if self.platform_os != 'Windows':
-            debug('This script is only available on Windows Vista or above (for obvious reasons)', err=True, terminate=True)
+            debug('This script is only available on Windows Vista or above (for obvious reasons)', err=True,
+                  terminate=True)
 
         debug('You are using Windows ' + self.platform_version)
 
@@ -79,7 +80,7 @@ class SyncEngine:
 
             self.handler = SNTFileHandler(self)
         elif self.platform_version == '8':
-            debug('Not yet implemented', terminate=True) # TODO
+            debug('Not yet implemented', terminate=True)  # TODO
         elif self.platform_version == '10':
             # Old app
             old_sticky_notes_directory = os.path.join(env('USERPROFILE'), 'AppData\Roaming\Microsoft\Sticky Notes')
@@ -87,30 +88,35 @@ class SyncEngine:
             old_sticky_notes_file_path = os.path.join(old_sticky_notes_directory, old_sticky_notes_filename)
 
             # New app
-            new_sticky_notes_directory = os.path.join(env('USERPROFILE'), 'AppData\Local\Packages\Microsoft.MicrosoftStickyNotes_8wekyb3d8bbwe\LocalState')
+            new_sticky_notes_directory = os.path.join(env('USERPROFILE'),
+                                                      'AppData\Local\Packages\Microsoft.MicrosoftStickyNotes_8wekyb3d8bbwe\LocalState')
             new_sticky_notes_filename = 'plum.sqlite'
             new_sticky_notes_file_path = os.path.join(new_sticky_notes_directory, new_sticky_notes_filename)
 
-            if os.path.isfile(old_sticky_notes_file_path) and os.path.isfile(new_sticky_notes_file_path): # Both exists, take the most recent
-                if os.path.getmtime(new_sticky_notes_file_path) >= os.path.getmtime(old_sticky_notes_file_path): # New app is the most recently modified
+            if os.path.isfile(old_sticky_notes_file_path) and os.path.isfile(
+                    new_sticky_notes_file_path):  # Both exists, take the most recent
+                if os.path.getmtime(new_sticky_notes_file_path) >= os.path.getmtime(
+                        old_sticky_notes_file_path):  # New app is the most recently modified
                     self.sticky_notes_directory = new_sticky_notes_directory
                     self.sticky_notes_filename = new_sticky_notes_filename
                     self.sticky_notes_file_path = new_sticky_notes_file_path
 
                     self.handler = SQLiteFileHandler(self)
-                else: # Old app is the most recently modified
+                else:  # Old app is the most recently modified
                     self.sticky_notes_directory = old_sticky_notes_directory
                     self.sticky_notes_filename = old_sticky_notes_filename
                     self.sticky_notes_file_path = old_sticky_notes_file_path
 
                     self.handler = SNTFileHandler(self)
-            elif os.path.isfile(old_sticky_notes_file_path) and not os.path.isfile(new_sticky_notes_file_path): # Old exists
+            elif os.path.isfile(old_sticky_notes_file_path) and not os.path.isfile(
+                    new_sticky_notes_file_path):  # Old exists
                 self.sticky_notes_directory = old_sticky_notes_directory
                 self.sticky_notes_filename = old_sticky_notes_filename
                 self.sticky_notes_file_path = old_sticky_notes_file_path
 
                 self.handler = SNTFileHandler(self)
-            elif not os.path.isfile(old_sticky_notes_file_path) and os.path.isfile(new_sticky_notes_file_path): # New exists
+            elif not os.path.isfile(old_sticky_notes_file_path) and os.path.isfile(
+                    new_sticky_notes_file_path):  # New exists
                 self.sticky_notes_directory = new_sticky_notes_directory
                 self.sticky_notes_filename = new_sticky_notes_filename
                 self.sticky_notes_file_path = new_sticky_notes_file_path
@@ -119,4 +125,5 @@ class SyncEngine:
             else:
                 debug('Sticky Notes file not found', err=True, terminate=True)
         else:
-            debug('This Windows version (' + self.platform_version + ') is invalid or is not managed', err=True, terminate=True)
+            debug('This Windows version (' + self.platform_version + ') is invalid or is not managed', err=True,
+                  terminate=True)

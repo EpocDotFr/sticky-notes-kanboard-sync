@@ -1,9 +1,10 @@
 from watchdog.events import PatternMatchingEventHandler
-from utils import debug, rtf_to_markdown
+from utils import debug, rtf_to_text, extract_first_line
 import watchdog.events
 import olefile
 import sqlite3
 import configparser
+import kanboard
 
 
 class FileHandlerInterface(PatternMatchingEventHandler):
@@ -31,6 +32,15 @@ class FileHandlerInterface(PatternMatchingEventHandler):
             debug('Unhandled event type: ' + event.event_type, err=True)
             return False
 
+    def sync_note(self, note):
+        note_text = rtf_to_text(note['text'])
+        note_title = extract_first_line(note_text)
+
+        response = kanboard.create_task(title=note_title,
+                                        description=note_text,
+                                        color_id=None
+                                        )
+
     def on_any_event(self, event):
         if not self.is_valid_event(event):
             pass
@@ -38,8 +48,11 @@ class FileHandlerInterface(PatternMatchingEventHandler):
         notes = self.get_notes()
 
         for note in notes:
-            print(rtf_to_markdown(note['text'])) # TODO
-    
+            try:
+                self.sync_note(note)
+            except Exception as e:
+                debug(e, err=True)
+
     def get_notes(self):
         """Must be overridden to return a list of notes regarding the filetype we are watching."""
 
@@ -63,8 +76,8 @@ class SNTFileHandler(FileHandlerInterface):
         self.snt_file = olefile.OleFileIO(self.sync_engine.sticky_notes_file_path)
 
         for storage in self.snt_file.listdir(storages=True, streams=False):
-            note_id = storage[0] # UUID-like string representing the note ID
-            note_text_rtf_file = '0' # RTF content of the note
+            note_id = storage[0]  # UUID-like string representing the note ID
+            note_text_rtf_file = '0'  # RTF content of the note
 
             note_text_rtf = ''
 
@@ -114,6 +127,6 @@ class INIFileHandler(FileHandlerInterface):
         self.sidebar_config = configparser.ConfigParser()
         self.sidebar_config.read(self.sync_engine.sticky_notes_file_path)
 
-        print(self.sidebar_config.sections()) # TODO
+        print(self.sidebar_config.sections())  # TODO
 
-        return [] # TODO
+        return []  # TODO
