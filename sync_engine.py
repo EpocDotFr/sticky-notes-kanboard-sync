@@ -1,4 +1,4 @@
-from file_handlers import SNTFileHandler, SQLiteFileHandler
+from file_handlers import SNTFileHandler, SQLiteFileHandler, INIFileHandler
 from watchdog.observers import Observer
 from envparse import env, Env
 from utils import debug
@@ -27,9 +27,10 @@ class SyncEngine:
         debug('Initializing')
 
     def run(self):
+        """Run the file watcher of the sync engine, which will make things when the file is changed."""
+
         self.discover_paths()
 
-        """Run the file watcher of the sync engine, which will make things when the file is changed."""
         debug('Watching ' + self.sticky_notes_file_path)
 
         observer = Observer()
@@ -49,10 +50,9 @@ class SyncEngine:
         """Discover where is the Sticky Notes data file located."""
         self.platform_os = platform.system()
 
-        if not self.platform_version: # If Windows version wasn't already set
+        if not self.platform_version: # If Windows version wasn't already set manually
             self.platform_version = platform.release()
 
-        """Detect where is the Sticky Notes file to watch. Depends on the OS version."""
         debug('Discovering Sticky Notes data file')
 
         if self.platform_os != 'Windows':
@@ -61,7 +61,14 @@ class SyncEngine:
         debug('You are using Windows ' + self.platform_version)
 
         if self.platform_version == 'Vista':
-            debug('Not yet implemented', terminate=True) # TODO
+            self.sticky_notes_directory = os.path.join(env('USERPROFILE'), 'AppData\Local\Microsoft\Windows Sidebar')
+            self.sticky_notes_filename = 'Settings.ini'
+            self.sticky_notes_file_path = os.path.join(self.sticky_notes_directory, self.sticky_notes_filename)
+
+            if not os.path.isfile(self.sticky_notes_file_path):
+                debug('Sticky Notes file not found', err=True, terminate=True)
+
+            self.handler = INIFileHandler(self)
         elif self.platform_version == '7':
             self.sticky_notes_directory = os.path.join(env('USERPROFILE'), 'AppData\Roaming\Microsoft\Sticky Notes')
             self.sticky_notes_filename = 'StickyNotes.snt'
