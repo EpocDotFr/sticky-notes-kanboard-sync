@@ -1,5 +1,5 @@
 from watchdog.events import PatternMatchingEventHandler
-from utils import debug
+from utils import debug, rtf_to_markdown
 import watchdog.events
 import olefile
 import sqlite3
@@ -8,6 +8,7 @@ import configparser
 
 class FileHandlerInterface(PatternMatchingEventHandler):
     """Base class for all the Sticky Notes file handlers."""
+
     sync_engine = None
 
     def __init__(self, sync_engine, patterns=None):
@@ -34,13 +35,20 @@ class FileHandlerInterface(PatternMatchingEventHandler):
         if not self.is_valid_event(event):
             pass
 
-        print(self.get_notes()) # TODO
+        notes = self.get_notes()
+
+        for note in notes:
+            print(rtf_to_markdown(note['text'])) # TODO
     
     def get_notes(self):
+        """Must be overridden to return a list of notes regarding the filetype we are watching."""
+
         raise Exception('get_notes must be overridden')
 
 
 class SNTFileHandler(FileHandlerInterface):
+    """StickyNotes.snt file handler"""
+
     snt_file = None
 
     def __init__(self, sync_engine):
@@ -71,6 +79,8 @@ class SNTFileHandler(FileHandlerInterface):
 
 
 class SQLiteFileHandler(FileHandlerInterface):
+    """plum.sqlite file handler"""
+
     connection = None
 
     def __init__(self, sync_engine):
@@ -93,6 +103,8 @@ class SQLiteFileHandler(FileHandlerInterface):
 
 
 class INIFileHandler(FileHandlerInterface):
+    """Settings.ini file handler"""
+
     sidebar_config = None
 
     def __init__(self, sync_engine):

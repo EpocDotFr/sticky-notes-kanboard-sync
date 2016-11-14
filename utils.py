@@ -7,3 +7,6 @@ def debug(message, err=False, terminate=False):
 
     if terminate:
         sys.exit(1)
+
+def rtf_to_markdown(text):
+    return text
