@@ -144,8 +144,10 @@ format) and `Theme` (note color). All other fields and tables either doesn't see
 ## License
 
 > DBAD Public License (see [LICENSE.md](LICENSE.md)).
+>
 > Copyright (C) 2016 Maxime "Epoc" G.
 
 Please note that the RTF parser in this project wasn't written by me, but by an unknown person. I found this parser
 somewhere in a ZIP file that I downloaded, and converted it to be used in Python 3. If you are the author, or if
-you know him, I'll happily credit you if you contact me.
+you know him, I'll happily credit you if you contact me. The `Rtf2Markdown.py` file was written by me, with inspirations
+from the `Rtf2Html.py` file.

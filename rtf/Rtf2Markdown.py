@@ -1,5 +1,5 @@
 """
-Convert RTF file to raw text
+Convert RTF file to Markdown
 """
 import rtf.RtfParser
 import sys
@@ -30,6 +30,10 @@ class Destination:
         pass
 
 class RtfDestination(Destination):
+    tags = {'b' : ['**','**'],
+            'i' : ['__','__'],
+            'strike' : ['~~','~~']}
+    
     def __init__(self, foutput, parser, fontTable=None, colorTable=None):
         Destination.__init__(self, foutput, parser)
         self.name = 'Rtf'
@@ -50,6 +54,8 @@ class RtfDestination(Destination):
 
     def reset(self):
         self.close()
+        for token in self.tags.keys():
+            setattr(self,token,False)
     
     def doControl(self,token,arg):
         if token in ['*','stylesheet','info']:
@@ -60,11 +66,13 @@ class RtfDestination(Destination):
         elif token in ['ansi','mac','pc','pca']:
             self.characterSet = token
             if token == 'pc':
-                self.ansicpg = '437'
+                self.ansicpg = 'cp437'
             elif token == 'pca':
-                self.ansicpg = '850'
+                self.ansicpg = 'cp850'
+            elif token == 'ansi':
+                self.ansicpg = 'latin_1'
         elif token == 'ansicpg':
-            self.ansicpg = arg
+            self.ansicpg = 'cp'+arg
         elif token == 'fonttbl':
             self.parser.setDest(self.fontTable)
         elif token == 'colortbl':
@@ -73,7 +81,9 @@ class RtfDestination(Destination):
             self.foutput.write('\r\n')
         elif token in  ('b','i','strike','ql','qr','qj','qc'):
             #bold italic strike
-            pass
+            open = self.tags[token][0]
+            close = self.tags[token][1]
+            self.treatIt(token,arg,open,close)
         elif token == 'ul':
             #underline
             self.styles.append('ul')
@@ -123,8 +133,12 @@ class RtfDestination(Destination):
     def close(self):
         #close all pending types
         foutput = self.foutput
+        tags = self.tags
         styles = self.styles
         styles.reverse()
+        for token in styles:
+            if token in tags:
+                foutput.write('%s\n' % tags[token][1])
         self.styles = ['']
 
     def pushState(self,list):
@@ -206,7 +220,7 @@ class ColorTableDestination(Destination):
         color = self.colorTable[-1]
         setattr(color,token,int(arg))
                 
-class Rtf2Txt(rtf.RtfParser.RtfParser):
+class Rtf2Markdown(rtf.RtfParser.RtfParser):
     def __init__(self,foutput):
         rtf.RtfParser.RtfParser.__init__(self)
         self.foutput = foutput
@@ -258,12 +272,11 @@ class Rtf2Txt(rtf.RtfParser.RtfParser):
         for dest in self.destinations:
             dest.close()
 
-
-def getTxt(rtf):
-    """ get the Text from a string that contain Rtf """
+def getMarkdown(rtf):
+    """ get the Markdown from a string that contain Rtf """
     from io import StringIO
     s = StringIO()
-    parser = Rtf2Txt(s)
+    parser = Rtf2Markdown(s)
     parser.feed(rtf)
     parser.close()
     return s.getvalue()

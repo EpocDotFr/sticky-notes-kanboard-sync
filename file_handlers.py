@@ -1,6 +1,6 @@
 from watchdog.events import PatternMatchingEventHandler
 from utils import debug, split_note_text
-import rtf.Rtf2Txt
+import rtf.Rtf2Markdown
 import watchdog.events
 import olefile
 import sqlite3
@@ -89,7 +89,7 @@ class SNTFileHandler(FileHandlerInterface):
             with self.snt_file.openstream([note_id, note_text_rtf_file]) as note_content:
                 note_text_rtf = note_content.read().decode()
 
-            notes.append({'text': rtf.Rtf2Txt.getTxt(note_text_rtf), 'color': None})
+            notes.append({'text': rtf.Rtf2Markdown.getMarkdown(note_text_rtf), 'color': None})
 
         self.snt_file.close()
 
@@ -116,7 +116,7 @@ class SQLiteFileHandler(FileHandlerInterface):
         cursor = self.connection.cursor()
         notes_db = cursor.execute('SELECT Text, Theme FROM Note')
 
-        notes = [{'text': rtf.Rtf2Txt.getTxt(note['Text']), 'color': note['Theme']} for note in notes_db]
+        notes = [{'text': rtf.Rtf2Markdown.getMarkdown(note['Text']), 'color': note['Theme']} for note in notes_db]
 
         self.connection.close()
 
