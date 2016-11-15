@@ -1,5 +1,6 @@
 from watchdog.events import PatternMatchingEventHandler
 from utils import debug, split_note_text
+from urllib import parse
 import rtf.Rtf2Markdown
 import watchdog.events
 import olefile
@@ -38,7 +39,7 @@ class FileHandlerInterface(PatternMatchingEventHandler):
 
         response = kanboard.create_task(title=note_title,
                                         description=note_text,
-                                        color_id=self.get_note_color(note)
+                                        color_id=note['color']
                                         )
 
     def on_any_event(self, event):
@@ -57,11 +58,6 @@ class FileHandlerInterface(PatternMatchingEventHandler):
         """Must be overridden to return a list of notes regarding the filetype we are watching."""
 
         raise Exception('get_notes must be overridden')
-
-    def get_note_color(self, note):
-        """Must be overridden to return the Kanboard color ID of a note to sync."""
-
-        raise Exception('get_note_color must be overridden')
 
 
 class SNTFileHandler(FileHandlerInterface):
@@ -95,12 +91,17 @@ class SNTFileHandler(FileHandlerInterface):
 
         return notes
 
-    def get_note_color(self, note):
-        return None
-
 
 class SQLiteFileHandler(FileHandlerInterface):
     """plum.sqlite file handler"""
+
+    colors_map = {
+        'Yellow': 'yellow',
+        'Green': 'green',
+        'Blue': 'blue',
+        'Purple': 'purple',
+        'Pink': 'pink'
+    }
 
     connection = None
 
@@ -108,22 +109,20 @@ class SQLiteFileHandler(FileHandlerInterface):
         super().__init__(patterns=['*.sqlite'], sync_engine=sync_engine)
 
     def get_notes(self):
-        notes = []
-
         self.connection = sqlite3.connect('file:' + self.sync_engine.sticky_notes_file_path + '?mode=ro', uri=True)
         self.connection.row_factory = sqlite3.Row
 
         cursor = self.connection.cursor()
         notes_db = cursor.execute('SELECT Text, Theme FROM Note')
 
-        notes = [{'text': rtf.Rtf2Markdown.getMarkdown(note['Text']), 'color': note['Theme']} for note in notes_db]
+        notes = [{'text': rtf.Rtf2Markdown.getMarkdown(note['Text']), 'color': self.get_note_color(note['Theme'])} for note in notes_db]
 
         self.connection.close()
 
         return notes
 
     def get_note_color(self, note):
-        return None
+        return self.colors_map[note['color']] if note['color'] in self.colors_map else None
 
 
 class INIFileHandler(FileHandlerInterface):
@@ -135,12 +134,26 @@ class INIFileHandler(FileHandlerInterface):
         super().__init__(patterns=['*.ini'], sync_engine=sync_engine)
 
     def get_notes(self):
+        notes = []
+
         self.sidebar_config = configparser.ConfigParser()
         self.sidebar_config.read(self.sync_engine.sticky_notes_file_path)
 
-        print(self.sidebar_config.sections())  # TODO
+        notes_color = None
 
-        return []  # TODO
+        for section in self.sidebar_config.sections():
+            if not section.starts_with('Section '):
+                continue
 
-    def get_note_color(self, note):
-        return None
+            if 'NoteCount' not in self.sidebar_config[section]:
+                continue
+
+            notes_color = self.sidebar_config[section]['ColorSaved'] if 'ColorSaved' in self.sidebar_config[section] and notes_color is None else None
+
+            for key in self.sidebar_config[section]:
+                if key.isdigit():
+                    notes.append({'text': parse.unquote(self.sidebar_config[section][key]), 'color': notes_color})
+
+            break
+
+        return notes
