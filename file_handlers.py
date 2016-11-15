@@ -1,5 +1,6 @@
 from watchdog.events import PatternMatchingEventHandler
-from utils import debug, rtf_to_text, extract_first_line
+from utils import debug, split_note_text
+import rtf.Rtf2Txt
 import watchdog.events
 import olefile
 import sqlite3
@@ -33,12 +34,11 @@ class FileHandlerInterface(PatternMatchingEventHandler):
             return False
 
     def sync_note(self, note):
-        note_text = rtf_to_text(note['text'])
-        note_title = extract_first_line(note_text)
+        note_title, note_text = split_note_text(note['text'])
 
         response = kanboard.create_task(title=note_title,
                                         description=note_text,
-                                        color_id=None
+                                        color_id=self.get_note_color(note)
                                         )
 
     def on_any_event(self, event):
@@ -57,6 +57,11 @@ class FileHandlerInterface(PatternMatchingEventHandler):
         """Must be overridden to return a list of notes regarding the filetype we are watching."""
 
         raise Exception('get_notes must be overridden')
+
+    def get_note_color(self, note):
+        """Must be overridden to return the Kanboard color ID of a note to sync."""
+
+        raise Exception('get_note_color must be overridden')
 
 
 class SNTFileHandler(FileHandlerInterface):
@@ -84,11 +89,14 @@ class SNTFileHandler(FileHandlerInterface):
             with self.snt_file.openstream([note_id, note_text_rtf_file]) as note_content:
                 note_text_rtf = note_content.read().decode()
 
-            notes.append({'text': note_text_rtf, 'color': None})
+            notes.append({'text': rtf.Rtf2Txt.getTxt(note_text_rtf), 'color': None})
 
         self.snt_file.close()
 
         return notes
+
+    def get_note_color(self, note):
+        return None
 
 
 class SQLiteFileHandler(FileHandlerInterface):
@@ -108,11 +116,14 @@ class SQLiteFileHandler(FileHandlerInterface):
         cursor = self.connection.cursor()
         notes_db = cursor.execute('SELECT Text, Theme FROM Note')
 
-        notes = [{'text': note['Text'], 'color': note['Theme']} for note in notes_db]
+        notes = [{'text': rtf.Rtf2Txt.getTxt(note['Text']), 'color': note['Theme']} for note in notes_db]
 
         self.connection.close()
 
         return notes
+
+    def get_note_color(self, note):
+        return None
 
 
 class INIFileHandler(FileHandlerInterface):
@@ -130,3 +141,6 @@ class INIFileHandler(FileHandlerInterface):
         print(self.sidebar_config.sections())  # TODO
 
         return []  # TODO
+
+    def get_note_color(self, note):
+        return None

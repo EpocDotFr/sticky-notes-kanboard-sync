@@ -30,9 +30,12 @@ Available configuration parameters are:
   - `KANBOARD_ENDPOINT` URL to the `jsonrpc.php` file of Kanboard's API
   - `KANBOARD_TOKEN` Token used to access the Kanboard instance API
   - `KANBOARD_PROJECT_ID` The project that will store your notes
-  - `KANBOARD_COLUMN_ID` and `KANBOARD_SWIMLANE_ID` Respectively the column and the swimlane that will be used to store your notes (set to `0` to automatically use the project's defaults)
+  - `KANBOARD_COLUMN_ID` The column that will be used to store your notes (set to empty to automatically use the first column)
+  - `KANBOARD_SWIMLANE_ID` The swimlane that will be used to store your notes (set to empty to automatically use the default swimlane)
 
 ## Usage
+
+**1. Run the script**
 
 ```
 python run.py [--win-version]
@@ -44,12 +47,16 @@ python run.py [--win-version]
     - `8`
     - `10`
 
+**2. Write some notes**
+
+The very first line of the note's text, whatever the Sticky Notes version you use, will always be used as the Kanboard's task title.
+
 ## How it works
 
 Once started, this script will detect your Windows version to discover where the Sticky Notes data file is located (see
 below). A [file watcher](https://github.com/gorakhargosh/watchdog) is then started to watch this file and will perform
 Kanboard synchronization actions (using its [JSON-RPC API](https://kanboard.net/documentation/api-json-rpc)) each time
-the file is modified.
+the file is finished to be modified (at the end of an idle timeout).
 
 ## Sticky Notes data files retro-engineering
 
