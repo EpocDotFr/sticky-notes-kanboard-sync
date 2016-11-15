@@ -140,3 +140,12 @@ It can be opened by the native [sqlite3](https://docs.python.org/3.5/library/sql
 
 Notes are stored in the `Note` table. Interesting fields are `Text` (note text in the [RTF](https://en.wikipedia.org/wiki/Rich_Text_Format)
 format) and `Theme` (note color). All other fields and tables either doesn't seem to be used at all or aren't interesting.
+
+## License
+
+> DBAD Public License (see [LICENSE.md](LICENSE.md)).
+> Copyright (C) 2016 Maxime "Epoc" G.
+
+Please note that the RTF parser in this project wasn't written by me, but by an unknown person. I found this parser
+somewhere in a ZIP file that I downloaded, and converted it to be used in Python 3. If you are the author, or if
+you know him, I'll happily credit you if you contact me.

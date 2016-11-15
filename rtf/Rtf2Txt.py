@@ -70,7 +70,7 @@ class RtfDestination(Destination):
         elif token == 'colortbl':
             self.parser.setDest(self.colorTable)
         elif token == 'par':
-            self.foutput.write('\n')
+            self.foutput.write('\r\n')
         elif token in  ('b','i','strike','ql','qr','qj','qc'):
             #bold italic strike
             #open = self.tags[token][0]
@@ -251,8 +251,7 @@ class Rtf2Txt(rtf.RtfParser.RtfParser):
 
     def putChar(self,ch):
         dest = self.destinations[-1]
-        if not (ch=='\n' or ch=='\r'):
-            dest.putChar(ch)
+        dest.putChar(ch)
 
     def doControl(self,token,arg):
         dest = self.destinations[-1]
