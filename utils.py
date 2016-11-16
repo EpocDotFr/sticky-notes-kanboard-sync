@@ -1,6 +1,5 @@
 import sys
 import logging
-import re
 
 
 def debug(message, err=False, terminate=False):
