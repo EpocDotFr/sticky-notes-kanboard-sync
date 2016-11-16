@@ -128,11 +128,11 @@ This file's structure is the following:
 |   +-- Version                   (6)
 ```
 
-  - **(1)** A folder that contains a note's data. It is named after it seems to be the first 20 characters of a [GUID](https://en.wikipedia.org/wiki/Globally_unique_identifier) (counting hyphens). Don't know why it's limited to 20 chars
+  - **(1)** A folder that contains one note data (the note's ID). It is named after it seems to be the first 20 characters of a [GUID](https://en.wikipedia.org/wiki/Globally_unique_identifier) (counting hyphens). Don't know why it's limited to 20 chars
   - **(2)** This file doesn't seem to contain interesting data. Changing a note's text, color or position doesn't impact it. In addition, its content seems to be the same for each notes (e.g `11 20 04 00 00 00 00 00 00 00` on Windows Seven's version)
   - **(3)** The note's text in the [RTF](https://en.wikipedia.org/wiki/Rich_Text_Format) format
-  - **(4)** The note's text, without any formatting, unicode-encoded (but still it seems to contain special characters I don't know what they are used for)
-  - **(5)** [TrID](http://mark0.net/soft-trid-e.html) recognize this file as a [Sybase iAnywhere](https://en.wikipedia.org/wiki/Sybase_iAnywhere) database file (`.dbf`), however there isn't any reasons Microsoft would use an external proprietary database system to store data in a file. In addition I wasn't able to open it either with a tool or with a Python package dedicated to open this file type. Comparing the hexadecimal content of this file before and after changing notes color seems to change very specific values but without being able to read this file or without any documentation, it isn't possible to properly parse this file. This file also don't seem to be a [Windows Metafile](https://en.wikipedia.org/wiki/Windows_Metafile)
+  - **(4)** The note's text, without any formatting, unicode encoded
+  - **(5)** [TrID](http://mark0.net/soft-trid-e.html) recognize this file as a [Sybase iAnywhere](https://en.wikipedia.org/wiki/Sybase_iAnywhere) database file (`.dbf`), however there isn't any reasons Microsoft would use an external proprietary database system to store data in a file. In addition I wasn't able to open it either with a tool or with a Python package dedicated to open this file type. Comparing the hexadecimal content of this file before and after changing notes color seems to change very specific values but without being able to read this file or without any documentation, it isn't possible to properly parse this file. This file also don't seem to be a [Windows Metafile](https://en.wikipedia.org/wiki/Windows_Metafile). There's references to IDs in its content, but not all existing notes
   - **(6)** Seems to be the version of the storage shema, in the hex format (e.g `02 00 00 00` for the Windows Seven's version)
 
 References:
