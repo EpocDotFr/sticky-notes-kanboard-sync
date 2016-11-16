@@ -6,9 +6,9 @@ A Python script to synchronize notes from Windows [Sticky Notes](https://en.wiki
 
 Supported versions are the ones you found in:
 
-  - Windows Vista (Gadget for Windows Sidebar) (TODO)
+  - Windows Vista (Gadget for Windows Sidebar)
   - Windows 7 (for technical reasons notes color can't be synchronized for this version)
-  - Windows 8 (TODO)
+  - Windows 8 (TODO, but must be the same as on Windows 7)
   - Windows 10
     - Initial release (for technical reasons notes color can't be synchronized for this version)
     - Anniversary Update
