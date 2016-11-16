@@ -6,7 +6,7 @@ A Python script to synchronize notes from Windows [Sticky Notes](https://en.wiki
 
 Supported versions are the ones you found in:
 
-  - Windows Vista (Gadget for Windows Sidebar)
+  - Windows Vista (Gadget for [Windows Sidebar](https://en.wikipedia.org/wiki/Windows_Desktop_Gadgets))
   - Windows 7 (for technical reasons notes color can't be synchronized for this version)
   - Windows 8 (TODO, but must be the same as on Windows 7)
   - Windows 10
@@ -79,23 +79,24 @@ It can be opened by the native [configparser](https://docs.python.org/3.5/librar
 This file's structure is the following (non-interesting parts have been deleted):
 
 ```
-[Root]
+[Root]                                       (1)
 ...
-[Section 1]                                  (1)
-NoteCount="3"                                (2)
-NoteState="2"                                (3)
-ColorSaved="yellow"                          (4)
+[Section 1]                                  (2)
+NoteCount="3"                                (3)
+NoteState="2"                                (4)
+ColorSaved="yellow"                          (5)
 0="test%0D%0Aa%20new%20line%0D%0A%0D%0Aomg"  }
-1="anoter%20one%0D%0A%0D%0Amultiline!"       } (5)
+1="anoter%20one%0D%0A%0D%0Amultiline!"       } (6)
 2="wohoo%0D%0A%0D%0Alook%20at%20this"        }
 ...
 ```
 
-  - **(1)** Each INI section starting by `Section` represents one gadget
-  - **(2)** Total number of saved notes
-  - **(3)** The note ID that is currently displayed on the gadget UI
-  - **(4)** Notes color (can't be defined individually)
-  - **(5)** The note's text, which is [URL encoded](https://en.wikipedia.org/wiki/Percent-encoding). Rich text formatting isn't supported. Keys within this INI section that are strictly integers are considered as the note's ID
+  - **(1)** This INI section contains general configuration parameters as well as the [GUID](https://en.wikipedia.org/wiki/Globally_unique_identifier) and location of each Windows Sidebar gadgets, and the version of the configuration schema
+  - **(2)** Each INI section starting by `Section` represents one gadget
+  - **(3)** Total number of saved notes
+  - **(4)** The note ID that is currently displayed on the gadget UI
+  - **(5)** Notes color (can't be defined individually)
+  - **(6)** The note's text, which is [URL encoded](https://en.wikipedia.org/wiki/Percent-encoding). Rich text formatting isn't supported. Keys within this INI section that are strictly integers are considered as the note's ID
 
 ### StickyNotes.snt
 
@@ -123,11 +124,11 @@ This file's structure is the following:
 |   +-- Version                   (6)
 ```
 
-  - **(1)** A folder that contains a note's data. It is named after it seems to be the first 20 characters of a [GUID](https://en.wikipedia.org/wiki/Globally_unique_identifier) (counting hyphens, don't know why it's limited to 20 chars)
+  - **(1)** A folder that contains a note's data. It is named after it seems to be the first 20 characters of a [GUID](https://en.wikipedia.org/wiki/Globally_unique_identifier) (counting hyphens). Don't know why it's limited to 20 chars
   - **(2)** This file doesn't seem to contain interesting data. Changing a note's text or color doesn't impact it
   - **(3)** The note's text in the [RTF](https://en.wikipedia.org/wiki/Rich_Text_Format) format
   - **(4)** The note's text without any formatting, but still it seems to contain special characters I don't know what they are used for
-  - **(5)** [TrIDNet](http://mark0.net/soft-tridnet-e.html) recognize this file as a [Sybase iAnywhere](https://en.wikipedia.org/wiki/Sybase_iAnywhere) database (either an [Advantage Database Server](https://en.wikipedia.org/wiki/Advantage_Database_Server) or [SQL Anywhere](https://en.wikipedia.org/wiki/SQL_Anywhere) one), however I wasn't able to open it either with a tool or with a Python package. Comparing the hex content of this file before and after changing notes color seems to change a specific value but without being able to read this file or without any documentation, it isn't possible to properly parse this file
+  - **(5)** [TrID](http://mark0.net/soft-trid-e.html) recognize this file as a [Sybase iAnywhere](https://en.wikipedia.org/wiki/Sybase_iAnywhere) database file (`.dbf`), however there isn't any reasons Microsoft would use an external proprietary database system to store data in a file. In addition I wasn't able to open it either with a tool or with a Python package dedicated to open this file type. Comparing the hexadecimal content of this file before and after changing notes color seems to change very specific values but without being able to read this file or without any documentation, it isn't possible to properly parse this file.
   - **(6)** Seems to either contain the version of Sticky Notes or the version of the storage shema, in the hex format (e.g `02 00 00 00` for the Windows Seven's version)
 
 ### plum.sqlite
