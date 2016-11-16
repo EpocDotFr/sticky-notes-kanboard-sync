@@ -38,10 +38,10 @@ Available configuration parameters are:
 **1. Run the script**
 
 ```
-python run.py [--win-version]
+python run.py [--winversion]
 ```
 
-  - `--win-version` Windows version. If defined, will force the script to not automatically detect the Windows version and use the one provided instead. Valid values are:
+  - `--winversion` Windows version. If defined, will force the script to not automatically detect the Windows version and use the one provided instead. Valid values are:
     - `Vista`
     - `7`
     - `8`
@@ -72,7 +72,7 @@ Applicable for:
   - Windows Vista (Gadget for Windows Sidebar)
 
 Located in the `%USERPROFILE%\AppData\Local\Microsoft\Windows Sidebar` directory, it's a simple [INI](https://en.wikipedia.org/wiki/INI_file)
-file. It is also used to store all configuration parameters related to Windows Sidebar.
+file with the [UCS-2 LE](https://en.wikipedia.org/wiki/Universal_Coded_Character_Set) with BOM encoding. It is also used to store all configuration parameters related to Windows Sidebar.
 
 It can be opened by the native [configparser](https://docs.python.org/3.5/library/configparser.html) package.
 

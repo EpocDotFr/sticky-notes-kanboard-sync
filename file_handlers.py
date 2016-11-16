@@ -7,6 +7,7 @@ import olefile
 import sqlite3
 import configparser
 import kanboard
+import codecs
 
 
 class FileHandlerInterface(PatternMatchingEventHandler):
@@ -80,8 +81,6 @@ class SNTFileHandler(FileHandlerInterface):
             note_id = storage[0]  # UUID-like string representing the note ID
             note_text_rtf_file = '0'  # RTF content of the note
 
-            note_text_rtf = ''
-
             with self.snt_file.openstream([note_id, note_text_rtf_file]) as note_content:
                 note_text_rtf = note_content.read().decode('unicode')
 
@@ -136,23 +135,30 @@ class INIFileHandler(FileHandlerInterface):
     def get_notes(self):
         notes = []
 
-        self.sidebar_config = configparser.ConfigParser()
-        self.sidebar_config.read(self.sync_engine.sticky_notes_file_path)
+        # This masquerade to decode the ugly file content from UTF-16 (UCS-2) LE with BOM to unicode
+        with open(self.sync_engine.sticky_notes_file_path, 'rb') as sidebar_config_file:
+            sidebar_config_file_content = sidebar_config_file.read()
+
+        sidebar_config_file_content = sidebar_config_file_content[len(codecs.BOM_UTF16_LE):]  # Remove the BOM
+
+        self.sidebar_config = configparser.ConfigParser(delimiters=('='), interpolation=None)
+        self.sidebar_config.read_string(sidebar_config_file_content.decode('utf-16-le'))
 
         notes_color = None
 
         for section in self.sidebar_config.sections():
-            if not section.starts_with('Section '):
+            if not section.startswith('Section '):
                 continue
 
             if 'NoteCount' not in self.sidebar_config[section]:
                 continue
 
-            notes_color = self.sidebar_config[section]['ColorSaved'] if 'ColorSaved' in self.sidebar_config[section] and notes_color is None else None
+            notes_color = self.sidebar_config[section]['ColorSaved'].strip('"') if 'ColorSaved' in self.sidebar_config[
+                section] and notes_color is None else None
 
             for key in self.sidebar_config[section]:
                 if key.isdigit():
-                    notes.append({'text': unquote(self.sidebar_config[section][key]), 'color': notes_color})
+                    notes.append({'text': unquote(self.sidebar_config[section][key].strip('"')), 'color': notes_color})
 
             break
 
