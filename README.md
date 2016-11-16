@@ -57,8 +57,8 @@ Once started, this script will detect your Windows version to discover where the
 below). A [file watcher](https://github.com/gorakhargosh/watchdog) is then started to watch this file for each modifications.
 
 The file watcher will perform the Kanboard synchronization actions (using its [JSON-RPC API](https://kanboard.net/documentation/api-json-rpc)) each time
-the file is finished to be modified, at the end of an idle timeout, because it seems all Sticky Notes version "streams" modifications
-directly to the storage file. This prevent to send tens of requests in a couple of seconds to Kanboard.
+the file is finished to be modified, at the end of an idle timeout (5 seconds), because it seems all Sticky Notes version
+"streams" modifications directly to the storage file. This prevent to send tens of requests in a couple of seconds to Kanboard.
 
 ## Sticky Notes data files retro-engineering
 

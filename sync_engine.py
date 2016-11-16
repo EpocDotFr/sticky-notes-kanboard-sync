@@ -1,10 +1,11 @@
 from file_handlers import SNTFileHandler, SQLiteFileHandler, INIFileHandler
 from watchdog.observers import Observer
 from envparse import env, Env
-from utils import debug
+from utils import debug, split_note_text
 import platform
 import os
 import time
+import kanboard
 
 
 class SyncEngine:
@@ -127,3 +128,16 @@ class SyncEngine:
         else:
             debug('This Windows version (' + self.platform_version + ') is invalid or is not managed', err=True,
                   terminate=True)
+
+    def sync_notes(self, notes):
+        """Sync a list of notes."""
+        for note in notes:
+            try:
+                note_title, note_text = split_note_text(note['text'])
+
+                response = kanboard.create_task(title=note_title,
+                                                description=note_text,
+                                                color_id=note['color']
+                                                )
+            except Exception as e:
+                debug(e, err=True)

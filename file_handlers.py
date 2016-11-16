@@ -1,19 +1,20 @@
 from watchdog.events import PatternMatchingEventHandler
-from utils import debug, split_note_text
+from utils import debug
 from urllib.parse import unquote
 from rtf.Rtf2Markdown import getMarkdown
 import watchdog.events
 import olefile
 import sqlite3
 import configparser
-import kanboard
 import codecs
+import threading
 
 
 class FileHandlerInterface(PatternMatchingEventHandler):
     """Base class for all the Sticky Notes file handlers."""
 
     sync_engine = None
+    idle_timeout = None
 
     def __init__(self, sync_engine, patterns=None):
         self.sync_engine = sync_engine
@@ -21,6 +22,7 @@ class FileHandlerInterface(PatternMatchingEventHandler):
         super().__init__(ignore_directories=True, patterns=patterns)
 
     def is_valid_event(self, event):
+        """Check if event is a valid event to be proceesed by the file handler."""
         if self.sync_engine.sticky_notes_file_path != event.src_path:
             return False
 
@@ -35,25 +37,16 @@ class FileHandlerInterface(PatternMatchingEventHandler):
             debug('Unhandled event type: ' + event.event_type, err=True)
             return False
 
-    def sync_note(self, note):
-        note_title, note_text = split_note_text(note['text'])
-
-        response = kanboard.create_task(title=note_title,
-                                        description=note_text,
-                                        color_id=note['color']
-                                        )
-
     def on_any_event(self, event):
         if not self.is_valid_event(event):
             pass
 
-        notes = self.get_notes()
+        # Restart the idle timeout
+        if self.idle_timeout:
+            self.idle_timeout.cancel()
 
-        for note in notes:
-            try:
-                self.sync_note(note)
-            except Exception as e:
-                debug(e, err=True)
+        self.idle_timeout = threading.Timer(5.0, self.sync_engine.sync_notes, args=[self.get_notes()])
+        self.idle_timeout.start()
 
     def get_notes(self):
         """Must be overridden to return a list of notes regarding the filetype we are watching."""
