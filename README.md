@@ -98,6 +98,10 @@ ColorSaved="yellow"                          (5)
   - **(5)** Notes color (can't be defined individually)
   - **(6)** The note's text, which is [URL encoded](https://en.wikipedia.org/wiki/Percent-encoding). Rich text formatting isn't supported. Keys within this INI section that are strictly integers are considered as the note's ID
 
+References:
+
+  - [Where does Windows Vista's Notes gadget store your notes? - Super User](http://superuser.com/a/119515/214377)
+
 ### StickyNotes.snt
 
 Applicable for:
@@ -128,8 +132,14 @@ This file's structure is the following:
   - **(2)** This file doesn't seem to contain interesting data. Changing a note's text or color doesn't impact it
   - **(3)** The note's text in the [RTF](https://en.wikipedia.org/wiki/Rich_Text_Format) format
   - **(4)** The note's text without any formatting, but still it seems to contain special characters I don't know what they are used for
-  - **(5)** [TrID](http://mark0.net/soft-trid-e.html) recognize this file as a [Sybase iAnywhere](https://en.wikipedia.org/wiki/Sybase_iAnywhere) database file (`.dbf`), however there isn't any reasons Microsoft would use an external proprietary database system to store data in a file. In addition I wasn't able to open it either with a tool or with a Python package dedicated to open this file type. Comparing the hexadecimal content of this file before and after changing notes color seems to change very specific values but without being able to read this file or without any documentation, it isn't possible to properly parse this file.
+  - **(5)** [TrID](http://mark0.net/soft-trid-e.html) recognize this file as a [Sybase iAnywhere](https://en.wikipedia.org/wiki/Sybase_iAnywhere) database file (`.dbf`), however there isn't any reasons Microsoft would use an external proprietary database system to store data in a file. In addition I wasn't able to open it either with a tool or with a Python package dedicated to open this file type. Comparing the hexadecimal content of this file before and after changing notes color seems to change very specific values but without being able to read this file or without any documentation, it isn't possible to properly parse this file. This file isn't also a [Windows Metafile](https://en.wikipedia.org/wiki/Windows_Metafile)
   - **(6)** Seems to either contain the version of Sticky Notes or the version of the storage shema, in the hex format (e.g `02 00 00 00` for the Windows Seven's version)
+
+References:
+
+  - [Where Sticky Notes are saved in Windows 10 1607 - Stack Overflow](http://stackoverflow.com/a/38823429/1252290)
+  - [Sticky Notes - Forensics Wiki](http://www.forensicswiki.org/wiki/Sticky_Notes)
+  - [Sticky Notes Analysis - Windows Incident Response](http://windowsir.blogspot.fr/2011/08/sticky-notes-analysis.html)
 
 ### plum.sqlite
 
@@ -143,6 +153,10 @@ It can be opened by the native [sqlite3](https://docs.python.org/3.5/library/sql
 
 Notes are stored in the `Note` table. Interesting fields are `Text` (note text in the [RTF](https://en.wikipedia.org/wiki/Rich_Text_Format)
 format) and `Theme` (note color). All other fields and tables either doesn't seem to be used at all or aren't interesting.
+
+References:
+
+  - [Where Sticky Notes are saved in Windows 10 1607 - Stack Overflow](http://stackoverflow.com/a/39197793/1252290)
 
 ## License
 
