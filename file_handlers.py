@@ -83,7 +83,7 @@ class SNTFileHandler(FileHandlerInterface):
             note_text_rtf = ''
 
             with self.snt_file.openstream([note_id, note_text_rtf_file]) as note_content:
-                note_text_rtf = note_content.read().decode()
+                note_text_rtf = note_content.read().decode('unicode')
 
             notes.append({'text': getMarkdown(note_text_rtf), 'color': None})
 
