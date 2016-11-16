@@ -1,7 +1,7 @@
 from watchdog.events import PatternMatchingEventHandler
 from utils import debug, split_note_text
-from urllib import parse
-import rtf.Rtf2Markdown
+from urllib.parse import unquote
+from rtf.Rtf2Markdown import getMarkdown
 import watchdog.events
 import olefile
 import sqlite3
@@ -85,7 +85,7 @@ class SNTFileHandler(FileHandlerInterface):
             with self.snt_file.openstream([note_id, note_text_rtf_file]) as note_content:
                 note_text_rtf = note_content.read().decode()
 
-            notes.append({'text': rtf.Rtf2Markdown.getMarkdown(note_text_rtf), 'color': None})
+            notes.append({'text': getMarkdown(note_text_rtf), 'color': None})
 
         self.snt_file.close()
 
@@ -115,7 +115,7 @@ class SQLiteFileHandler(FileHandlerInterface):
         cursor = self.connection.cursor()
         notes_db = cursor.execute('SELECT Text, Theme FROM Note')
 
-        notes = [{'text': rtf.Rtf2Markdown.getMarkdown(note['Text']), 'color': self.get_note_color(note['Theme'])} for note in notes_db]
+        notes = [{'text': getMarkdown(note['Text']), 'color': self.get_note_color(note['Theme'])} for note in notes_db]
 
         self.connection.close()
 
@@ -152,7 +152,7 @@ class INIFileHandler(FileHandlerInterface):
 
             for key in self.sidebar_config[section]:
                 if key.isdigit():
-                    notes.append({'text': parse.unquote(self.sidebar_config[section][key]), 'color': notes_color})
+                    notes.append({'text': unquote(self.sidebar_config[section][key]), 'color': notes_color})
 
             break
 
