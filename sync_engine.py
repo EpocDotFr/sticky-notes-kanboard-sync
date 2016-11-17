@@ -6,6 +6,7 @@ import platform
 import os
 import time
 import kanboard
+import sqlite3
 
 
 class SyncEngine:
