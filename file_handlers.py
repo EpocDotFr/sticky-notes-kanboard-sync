@@ -95,21 +95,20 @@ class SQLiteFileHandler(FileHandlerInterface):
         'Pink': 'pink'
     }
 
-    connection = None
+    database = None
 
     def __init__(self, sync_engine):
         super().__init__(patterns=['*.sqlite'], sync_engine=sync_engine)
 
     def get_notes(self):
-        self.connection = sqlite3.connect('file:' + self.sync_engine.sticky_notes_file_path + '?mode=ro', uri=True)
-        self.connection.row_factory = sqlite3.Row
+        self.database = sqlite3.connect('file:' + self.sync_engine.sticky_notes_file_path + '?mode=ro', uri=True)
+        self.database.row_factory = sqlite3.Row
 
-        cursor = self.connection.cursor()
-        notes_db = cursor.execute('SELECT Text, Theme FROM Note')
+        notes_in_db = self.database.execute('SELECT Text, Theme FROM Note')
 
-        notes = [{'text': getMarkdown(note['Text']), 'color': self.get_note_color(note['Theme'])} for note in notes_db]
+        notes = [{'text': getMarkdown(note['Text']), 'color': self.get_note_color(note['Theme'])} for note in notes_in_db]
 
-        self.connection.close()
+        self.database.close()
 
         return notes
 

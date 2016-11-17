@@ -21,15 +21,30 @@ class SyncEngine:
     sticky_notes_file_path = None
 
     handler = None
+    database = None
 
     def __init__(self):
         Env.read_envfile('.env')
 
         debug('Initializing')
 
+    def connect_to_sync_db(self):
+        db_file = 'data/sync.sqlite'
+
+        db_is_new = not os.path.isfile(db_file)
+
+        self.database = sqlite3.connect(db_file)
+        self.database.row_factory = sqlite3.Row
+
+        if db_is_new:
+            debug('Creating sync database schema')
+
+            # self.database.execute('CREATE TABLE alertes (id_troncon TEXT PRIMARY KEY NOT NULL, nom_troncon TEXT NOT NULL, date_debut TEXT NOT NULL, niveau TEXT NOT NULL)')
+
     def run(self):
         """Run the file watcher of the sync engine, which will make things when the file is changed."""
 
+        self.connect_to_sync_db()
         self.discover_paths()
 
         debug('Watching ' + self.sticky_notes_file_path)
