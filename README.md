@@ -2,20 +2,18 @@
 
 A Python script to synchronize notes from Windows [Sticky Notes](https://en.wikipedia.org/wiki/Sticky_Notes) to [Kanboard](https://kanboard.net/).
 
-**Only official Sticky Notes applications are supported** (not the ones made by third-parties).
+## Prerequisites
+
+Python 3 and a Windows OS with Sticky Notes. **Only official Sticky Notes applications are supported** (not the ones made by third-parties).
 
 Supported versions are the ones you found in:
 
   - Windows Vista (Gadget for [Windows Sidebar](https://en.wikipedia.org/wiki/Windows_Desktop_Gadgets))
   - Windows 7 (for technical reasons notes color can't be synchronized for this version)
-  - Windows 8 (TODO, but must be the same as on Windows 7)
+  - Windows 8 (for technical reasons notes color can't be synchronized for this version)
   - Windows 10
     - Initial release (for technical reasons notes color can't be synchronized for this version)
     - Anniversary Update
-
-## Prerequisites
-
-Python 3. And obviously Windows.
 
 ## Installation
 
@@ -53,14 +51,17 @@ The very first line of the note's text, whatever the Sticky Notes version you us
 
 ## How it works
 
-Once started, this script will detect your Windows version to discover where the Sticky Notes data file is located (see
-below). A [file watcher](https://github.com/gorakhargosh/watchdog) is then started to watch this file for each modifications.
+Once started, this script will detect your Windows version to discover where the Sticky Notes data file is located. A [file watcher](https://github.com/gorakhargosh/watchdog)
+is then started to watch this file for each modification made.
 
-The file watcher will perform the Kanboard synchronization actions (using its [JSON-RPC API](https://kanboard.net/documentation/api-json-rpc)) each time
-the file is finished to be modified, at the end of an idle timeout (5 seconds), because it seems all Sticky Notes version
-"streams" modifications directly to the storage file. This prevent to send tens of requests in a couple of seconds to Kanboard.
+This file watcher will perform the Kanboard synchronization actions (using its [JSON-RPC API](https://kanboard.net/documentation/api-json-rpc))
+each time the file is finished to be modified, at the end of an idle timeout (5 seconds), because it seems all Sticky Notes versions
+"streams" modifications directly to the storage file, thus making the "modified" event be raised several times a second. This prevent
+to send tens of requests in a couple of seconds to Kanboard. Also, the [JSON-RPC batch](http://www.jsonrpc.org/specification#batch) requests technique
+is also used to reduce the number of HTTP requests sent to Kanboard, for obvious optimization reasons.
 
-The script keeps track of synchronization data in the `data/sync.sqlite` [SQLite](https://en.wikipedia.org/wiki/SQLite) database file.
+The script keeps track of synchronization data in the `data/sync.sqlite` [SQLite](https://en.wikipedia.org/wiki/SQLite) database file. It allow
+the script to know what notes to create, delete or update.
 
 ## Sticky Notes data files retro-engineering
 
@@ -73,8 +74,8 @@ Applicable for:
 
   - Windows Vista (Gadget for Windows Sidebar)
 
-Located in the `%USERPROFILE%\AppData\Local\Microsoft\Windows Sidebar` directory, it's a simple [INI](https://en.wikipedia.org/wiki/INI_file)
-file with the [UCS-2 LE](https://en.wikipedia.org/wiki/Universal_Coded_Character_Set) with BOM encoding. It is also used to store all configuration parameters related to Windows Sidebar.
+Located in the `%USERPROFILE%\AppData\Local\Microsoft\Windows Sidebar` directory, it's a simple, [UCS-2 LE](https://en.wikipedia.org/wiki/Universal_Coded_Character_Set)
+with BOM encoded, [INI](https://en.wikipedia.org/wiki/INI_file) file. It is also used to store all configuration parameters related to Windows Sidebar.
 
 It can be opened by the native [configparser](https://docs.python.org/3.5/library/configparser.html) package.
 
@@ -93,7 +94,7 @@ ColorSaved="yellow"                          (5)
 ...
 ```
 
-  - **(1)** This INI section contains general configuration parameters as well as the [GUID](https://en.wikipedia.org/wiki/Globally_unique_identifier) and location of each Windows Sidebar gadgets, and the version of the configuration schema
+  - **(1)** This INI section contains general configuration parameters as well as the [GUID](https://en.wikipedia.org/wiki/Globally_unique_identifier) and location of each Windows Sidebar gadgets. Also contains the version of the configuration schema
   - **(2)** Each INI section starting by `Section` represents one gadget
   - **(3)** Total number of saved notes
   - **(4)** The note ID that is currently displayed on the gadget UI
@@ -134,7 +135,7 @@ This file's structure is the following:
   - **(2)** This file doesn't seem to contain interesting data. Changing a note's text, color or position doesn't impact it. In addition, its content seems to be the same for each notes (e.g `11 20 04 00 00 00 00 00 00 00` on Windows Seven's version)
   - **(3)** The note's text in the [RTF](https://en.wikipedia.org/wiki/Rich_Text_Format) format
   - **(4)** The note's text, without any formatting, unicode encoded
-  - **(5)** [TrID](http://mark0.net/soft-trid-e.html) recognize this file as a [Sybase iAnywhere](https://en.wikipedia.org/wiki/Sybase_iAnywhere) database file (`.dbf`), however there isn't any reasons Microsoft would use an external proprietary database system to store data in a file. In addition I wasn't able to open it either with a tool or with a Python package dedicated to open this file type. Comparing the hexadecimal content of this file before and after changing notes color seems to change very specific values but without being able to read this file or without any documentation, it isn't possible to properly parse this file. This file also don't seem to be a [Windows Metafile](https://en.wikipedia.org/wiki/Windows_Metafile). There's references to IDs in its content, but not all existing notes
+  - **(5)** [TrID](http://mark0.net/soft-trid-e.html) recognize this file as a [Sybase iAnywhere](https://en.wikipedia.org/wiki/Sybase_iAnywhere) database file (`.dbf`), however there isn't any reasons Microsoft would use an external proprietary database system to store data in a file. In addition I wasn't able to open it either with a tool or with a Python package dedicated to open this file type. Comparing the hexadecimal content of this file before and after changing notes color seems to change very specific values but without being able to read this file or without any documentation, it isn't possible to properly parse this file. This file also doesn't seems to be a [Windows Metafile](https://en.wikipedia.org/wiki/Windows_Metafile). There's references to note IDs in its content, but not all that can exists
   - **(6)** Seems to be the version of the storage shema, in the hex format (e.g `02 00 00 00` for the Windows Seven's version)
 
 References:
