@@ -60,6 +60,8 @@ The file watcher will perform the Kanboard synchronization actions (using its [J
 the file is finished to be modified, at the end of an idle timeout (5 seconds), because it seems all Sticky Notes version
 "streams" modifications directly to the storage file. This prevent to send tens of requests in a couple of seconds to Kanboard.
 
+The script keeps track of synchronization data in the `data/sync.sqlite` [SQLite](https://en.wikipedia.org/wiki/SQLite) database file.
+
 ## Sticky Notes data files retro-engineering
 
 There are three main types of data file used by Sticky Notes to store its data, one for each primary version of Sticky
