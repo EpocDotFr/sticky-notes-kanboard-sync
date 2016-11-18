@@ -135,7 +135,7 @@ This file's structure is the following:
   - **(2)** This file doesn't seem to contain interesting data. Changing a note's text, color or position doesn't impact it. In addition, its content seems to be the same for each notes (e.g `11 20 04 00 00 00 00 00 00 00` on Windows Seven's version)
   - **(3)** The note's text in the [RTF](https://en.wikipedia.org/wiki/Rich_Text_Format) format
   - **(4)** The note's text, without any formatting, unicode encoded
-  - **(5)** See [The Metafile mystery](#The Metafile mystery) below
+  - **(5)** See [The Metafile mystery](#the-metafile-mystery) below
   - **(6)** Seems to be the version of the storage shema, in the hex format (e.g `02 00 00 00` for the Windows Seven's version)
 
 References:
