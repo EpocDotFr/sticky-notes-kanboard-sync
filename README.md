@@ -168,8 +168,12 @@ The first 100 bytes of each records (counting the pattern) seems to be allocated
 
 | Offset | Purpose | Values |
 |--------|---------|--------|
-| 00-11  | Page type | `05 00 00 00 00 00 00 00 00 00 00 00` (header), `01 00 00 00 00 00 00 00 00 00 00 00` (records) |
-| 12-19  | Unknown  | `00 00 00 00 00 00 00 00` (header) or `FF FF FF FF FF FF FF FF` (records) |
+| 00-11  | Page type | `05 00 00 00 00 00 00 00 00 00 00 00` (header), `01 00 00 00 00 00 00 00 00 00 00 00` (record) |
+| 12-19  | Unknown  | `FF FF FF FF FF FF FF FF` (record) |
+| 20-55  | 9 groups of 4 bytes, unknown |  |
+| 56-61  | Unknown | `14 2D F3 52 FA 7F` (record) |
+| 62-91  | Unknown |  |
+| 92-End | Field data | Unicode data terminated with `00 00 00` |
 
 ### plum.sqlite
 
