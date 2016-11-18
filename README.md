@@ -56,12 +56,12 @@ is then started to watch this file for each modification made.
 
 This file watcher will perform the Kanboard synchronization actions (using its [JSON-RPC API](https://kanboard.net/documentation/api-json-rpc))
 each time the file is finished to be modified, at the end of an idle timeout (5 seconds), because it seems all Sticky Notes versions
-"streams" modifications directly to the storage file, thus making the "modified" event be raised several times a second. This prevent
-to send tens of requests in a couple of seconds to Kanboard. Also, the [JSON-RPC batch](http://www.jsonrpc.org/specification#batch) requests technique
-is also used to reduce the number of HTTP requests sent to Kanboard, for obvious optimization reasons.
+"streams" modifications directly to the storage file, thus making the "modified" event be raised a lot of times per seconds. This prevent
+to send tens of HTTP requests in a couple of seconds to Kanboard. The [JSON-RPC batch](http://www.jsonrpc.org/specification#batch) requests technique
+is used to reduce the number of HTTP requests sent to Kanboard, for obvious optimization reasons.
 
 The script keeps track of synchronization data in the `data/sync.sqlite` [SQLite](https://en.wikipedia.org/wiki/SQLite) database file. It allow
-the script to know what notes to create, delete or update.
+the script to know what notes to create, delete or update in Kanboard.
 
 ## Sticky Notes data files retro-engineering
 
@@ -135,7 +135,7 @@ This file's structure is the following:
   - **(2)** This file doesn't seem to contain interesting data. Changing a note's text, color or position doesn't impact it. In addition, its content seems to be the same for each notes (e.g `11 20 04 00 00 00 00 00 00 00` on Windows Seven's version)
   - **(3)** The note's text in the [RTF](https://en.wikipedia.org/wiki/Rich_Text_Format) format
   - **(4)** The note's text, without any formatting, unicode encoded
-  - **(5)** [TrID](http://mark0.net/soft-trid-e.html) recognize this file as a [Sybase iAnywhere](https://en.wikipedia.org/wiki/Sybase_iAnywhere) database file (`.dbf`), however there isn't any reasons Microsoft would use an external proprietary database system to store data in a file. In addition I wasn't able to open it either with a tool or with a Python package dedicated to open this file type. Comparing the hexadecimal content of this file before and after changing notes color seems to change very specific values but without being able to read this file or without any documentation, it isn't possible to properly parse this file. This file also doesn't seems to be a [Windows Metafile](https://en.wikipedia.org/wiki/Windows_Metafile). There's references to note IDs in its content, but not all that can exists
+  - **(5)** See [The Metafile mystery](#The Metafile mystery) below
   - **(6)** Seems to be the version of the storage shema, in the hex format (e.g `02 00 00 00` for the Windows Seven's version)
 
 References:
@@ -143,6 +143,23 @@ References:
   - [Where Sticky Notes are saved in Windows 10 1607 - Stack Overflow](http://stackoverflow.com/a/38823429/1252290)
   - [Sticky Notes - Forensics Wiki](http://www.forensicswiki.org/wiki/Sticky_Notes)
   - [Sticky Notes Analysis - Windows Incident Response](http://windowsir.blogspot.fr/2011/08/sticky-notes-analysis.html)
+
+#### The Metafile mystery
+
+There isn't any documentation about this file. So I ran it through [TrID](http://mark0.net/soft-trid-e.html), which recognize it as
+a [Sybase iAnywhere](https://en.wikipedia.org/wiki/Sybase_iAnywhere) database file with the `.dbf` extension (although
+it is reserved for [DBase](https://en.wikipedia.org/wiki/DBase) files). However I wasn't able to open it with tools dedicated to
+open these file types.
+
+This file also doesn't seems to be a [Windows Metafile](https://en.wikipedia.org/wiki/Windows_Metafile).
+
+After opening it in a text editor, it looks like there's references to note IDs in its content, but not all that can exists in
+the root `StickyNotes.snt` file.
+
+Comparing the hexadecimal content of this file before and after changing notes color seems to change very specific values.
+
+After some time, I found out that there is an hexadecimal pattern repeated throughout the file: `2C 00 00 00 00 00 00 00`, kind
+of a separator or something.
 
 ### plum.sqlite
 
