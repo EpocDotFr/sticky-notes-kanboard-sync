@@ -151,7 +151,8 @@ a [Sybase iAnywhere](https://en.wikipedia.org/wiki/Sybase_iAnywhere) database fi
 it is reserved for [DBase](https://en.wikipedia.org/wiki/DBase) files). However I wasn't able to open it with tools dedicated to
 open these file types.
 
-This file also doesn't seems to be a [Windows Metafile](https://en.wikipedia.org/wiki/Windows_Metafile) or a [Extensible Storage Engine](https://en.wikipedia.org/wiki/Extensible_Storage_Engine) file.
+This file also doesn't seems to be a [Windows Metafile](https://en.wikipedia.org/wiki/Windows_Metafile), a [Extensible Storage Engine](https://en.wikipedia.org/wiki/Extensible_Storage_Engine),
+or a [Microsoft Jet Database Engine](https://en.wikipedia.org/wiki/Microsoft_Jet_Database_Engine) one.
 
 After opening it in a text editor, it looks like there's references to note IDs in its content, but not all that can exists in
 the root `StickyNotes.snt` file.
