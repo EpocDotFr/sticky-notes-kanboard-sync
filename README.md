@@ -151,15 +151,24 @@ a [Sybase iAnywhere](https://en.wikipedia.org/wiki/Sybase_iAnywhere) database fi
 it is reserved for [DBase](https://en.wikipedia.org/wiki/DBase) files). However I wasn't able to open it with tools dedicated to
 open these file types.
 
-This file also doesn't seems to be a [Windows Metafile](https://en.wikipedia.org/wiki/Windows_Metafile).
+This file also doesn't seems to be a [Windows Metafile](https://en.wikipedia.org/wiki/Windows_Metafile) or a [Extensible Storage Engine](https://en.wikipedia.org/wiki/Extensible_Storage_Engine) file.
 
 After opening it in a text editor, it looks like there's references to note IDs in its content, but not all that can exists in
 the root `StickyNotes.snt` file.
 
-Comparing the hexadecimal content of this file before and after changing notes color seems to change very specific values.
+Comparing the hexadecimal content of this file before and after changing notes color seems to change very specific values. There's
+surely something interesting in this file, like the note's color.
 
-After some time, I found out that there is an hexadecimal pattern repeated throughout the file: `2C 00 00 00 00 00 00 00`, kind
-of a separator or something.
+After some time, I found out that there is an hexadecimal pattern (`2C 00 00 00 00 00 00 00`) repeated throughout the file,
+kind of a separator or something. After splitting the file content using this particular pattern, the file looks like to be
+a "paged" file. The first "page" seems to be what we'd call the header, the rest what we'd call records (see [`Metafile_hexa_content.txt`](Metafile_hexa_content.txt)).
+
+The first 100 bytes of each records (counting the pattern) seems to be allocated to some metadata.
+
+| Offset | Purpose | Values |
+|--------|---------|--------|
+| 00-11  | Page type | `05 00 00 00 00 00 00 00 00 00 00 00` (header), `01 00 00 00 00 00 00 00 00 00 00 00` (records) |
+| 12-19  | Unknown  | `00 00 00 00 00 00 00 00` (header) or `FF FF FF FF FF FF FF FF` (records) |
 
 ### plum.sqlite
 
