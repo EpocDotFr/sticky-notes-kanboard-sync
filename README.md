@@ -4,7 +4,7 @@ A Python script to synchronize notes from Windows [Sticky Notes](https://en.wiki
 
 ## Prerequisites
 
-Python 3 and a Windows OS with Sticky Notes. **Only official Sticky Notes applications are supported** (not the ones made by third-parties).
+Python 3 and a Windows OS with Sticky Notes. **Only official Sticky Notes applications are supported**.
 
 Supported versions are the ones you found in:
 
@@ -48,6 +48,9 @@ python run.py [--winversion]
 **2. Write some notes**
 
 The very first line of the note's text, whatever the Sticky Notes version you use, will always be used as the Kanboard's task title.
+
+**Note:** Synchronization isn't bi-directional at this moment, but is a planned feature (however it won't be available
+for Sticky Notes on Windows 7, Windows 8 and Windows 10 Initial release due to technical reasons).
 
 ## How it works
 
@@ -115,7 +118,8 @@ Applicable for:
 
 Located in the `%USERPROFILE%\AppData\Roaming\Microsoft\Sticky Notes` directory, it's an [OLE2](https://en.wikipedia.org/wiki/Compound_File_Binary_Format) file.
 
-This script use the [olefile](https://bitbucket.org/decalage/olefileio_pl/) package to open it.
+This script use the [olefile](https://bitbucket.org/decalage/olefileio_pl/) package to open it, however some files contained
+inside are black-boxes, as explained below.
 
 This file's structure is the following:
 
